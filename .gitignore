@@ -1,0 +1,17 @@
+build/
+install/
+log/
+.colcon/
+.vscode/
+.idea/
+*.bag
+*.db3
+*.mcap
+*.pcd
+*.ply
+*.log
+__pycache__/
+*.pyc
+src/vendor/*
+!src/vendor/README.md
+config/local/
