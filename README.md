@@ -20,9 +20,13 @@
 AT-AgriSense360_ws/
 ├── docs/                         # 项目基线、调研与研发流程
 ├── src/
-│   ├── agrisense360_interfaces/ # 自定义状态消息
-│   ├── agrisense360_bringup/    # 统一启动、配置与话题契约
-│   └── vendor/                  # 固定版本的第三方依赖
+│   ├── agrisense360_interfaces/ # 整机时间与电源状态消息
+│   ├── agrisense360_description/# 最终坐标系与标定契约
+│   ├── agrisense360_lidar/      # MID360S驱动边界
+│   ├── agrisense360_mapping/    # FAST-LIO2选型与输出契约
+│   ├── agrisense360_bringup/    # 唯一整机启动入口
+│   └── vendor/                  # 固定提交的第三方依赖
+├── tools/                           # 可重复构建脚本
 ├── build/                        # colcon生成，忽略
 ├── install/                      # colcon生成，忽略
 └── log/                          # colcon生成，忽略
@@ -30,12 +34,32 @@ AT-AgriSense360_ws/
 
 ## 当前迭代
 
-当前版本目标是`v0.2雷达惯导建图`：先接入MID360/MID360S点云和内置IMU，再跑通FAST-LIO2基础建图。四目、GNSS融合、STM32主板和3DGS按研发流程逐阶段进入，避免同时调试所有链路。
+当前版本目标是`v0.2雷达惯导建图`：先接入MID360S点云和内置IMU，再跑通FAST-LIO2基础建图。四目、GNSS融合、STM32主板和3DGS按研发流程逐阶段进入，避免同时调试所有链路。
 
 基础构建：
 
 ```bash
-source /opt/ros/humble/setup.bash
-colcon build --symlink-install
+./tools/build_workspace.sh
 source install/setup.bash
+```
+
+无实物雷达时的离线链路：
+
+```bash
+./tools/import_dependencies.sh
+./tools/build_livox_sdk2.sh
+./tools/build_workspace.sh
+./tools/download_public_mid360.sh
+
+bag=$(find datasets/public/driving_slam_mid360/extracted -name metadata.yaml -printf '%h\n' -quit)
+./tools/run_offline_lio.sh "$bag"
+```
+
+公开数据配置仅用于算法链路验证，不是AgriSense-360实机外参。
+
+当前不提交未核验的Livox JSON或假外参。安装并锁定第三方驱动后，整机仍从同一入口启动：
+
+```bash
+ros2 launch agrisense360_bringup agrisense360.launch.py \
+  enable_lidar:=true livox_config:=/absolute/path/to/verified_mid360s.json
 ```

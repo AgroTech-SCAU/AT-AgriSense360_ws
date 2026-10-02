@@ -1,0 +1,18 @@
+<?xml version="1.0"?>
+<package format="3">
+  <name>agrisense360_mapping</name>
+  <version>0.2.0</version>
+  <description>Mapping contracts and future FAST-LIO2 integration for AgriSense-360.</description>
+  <maintainer email="3186295108@qq.com">LaNHuii</maintainer>
+  <license>Apache-2.0</license>
+
+  <buildtool_depend>ament_cmake</buildtool_depend>
+  <exec_depend>ament_index_python</exec_depend>
+  <exec_depend>launch</exec_depend>
+  <exec_depend>launch_ros</exec_depend>
+  <exec_depend>fast_lio</exec_depend>
+
+  <export>
+    <build_type>ament_cmake</build_type>
+  </export>
+</package>

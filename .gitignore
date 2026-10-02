@@ -15,3 +15,8 @@ __pycache__/
 src/vendor/*
 !src/vendor/README.md
 config/local/
+.deps/
+third_party/
+datasets/*
+!datasets/README.md
+output/

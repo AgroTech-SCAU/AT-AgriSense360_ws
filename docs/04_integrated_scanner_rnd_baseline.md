@@ -1,6 +1,6 @@
 # AgriSense-360 高集成整机研发基准
 
-版本：0.3  
+版本：0.4
 生效日期：2026-09-30  
 决策来源：项目管理人 2026-09-24 沟通结论、当前研发要求及 2026-09-29 高集成整机修订批准  
 状态：当前有效研发基准
@@ -17,7 +17,7 @@ AgriSense-360 不再按“多个独立模块临时拼接”或“把若干成品
 2. Scanner Mainboard：统一时间、触发、供电时序、状态检测与内部接口；
 3. 可选固定电源子板：仅在EMI、散热或维修评审证明需要时承载DC/DC和大电流功率器件；
 4. NUC计算单元：ROS 2、录包、建图和系统管理；
-5. 刚性传感器头：MID-360/MID-360S、四目鱼眼和GNSS天线。
+5. 刚性传感器头：Livox MID360S、CyperStereo MF287和GNSS天线。
 
 第一版整机优先使用成熟电池包和现成 BMS。Libre Solar BMS C1 与 foxBMS 2 仅作为后续自研 BMS 的硬件、CAN、状态机和故障管理参考，第一版不同时承担“自研同步板”和“自研 BMS”两项高风险工作。使用成熟模块不等于允许模块散装：BMS 必须归入电池组件，NUC、主板和传感器必须归入统一机械、电气和软件架构。
 
@@ -51,13 +51,13 @@ EVT-0 是降低 EVT-1 返板风险的前置验证活动，不得因台架功能�
 Scanner Mainboard（Control / Time Sync）
         ├── 内置/配套电源域：NUC/LiDAR/CAM/GNSS/FAN
         ├── GNSS PPS + GPRMC 输入
-        ├── MID-360 PPS + GPRMC 输出
-        ├── Camera Trigger × 4 或以上
-        ├── Camera Strobe/Exposure Feedback × 4（建议）
+        ├── MID360S PPS + GPRMC 输出
+        ├── MF287 Trigger × 1（FPGA内部同步四目）
+        ├── MF287 Master Exposure Feedback × 1
         └── USB/UART/CAN → NUC
 
-MID-360 ─Ethernet─┐
-四目相机 ─USB/ETH─┼── NUC / ROS 2 Humble
+MID360S ─Ethernet─┐
+MF287 ─USB3/UVC─┼── NUC / ROS 2 Humble
 GNSS数据 ─UART/USB┤
 控制板状态 ─USB──┘
 ```
@@ -66,7 +66,7 @@ GNSS数据 ─UART/USB┤
 
 EVT-1 收敛为以下四个物理总成，而不是若干独立设备的集合：
 
-1. **刚性传感器头**：MID-360/MID-360S、四目鱼眼、GNSS 天线及固定长度线束；
+1. **刚性传感器头**：Livox MID360S、CyperStereo MF287、GNSS 天线及固定长度线束；
 2. **计算与控制核心**：NUC、Scanner Mainboard、必要的内部 USB Hub/以太网交换功能和统一散热结构；
 3. **可更换电池组件**：电芯、现成 BMS、保险和电池侧连接器组成封闭组件；
 4. **整机结构件**：外壳、承力骨架、机器人/手持安装接口、风道、按键、指示灯和统一接口面板。
@@ -78,8 +78,8 @@ EVT-1 收敛为以下四个物理总成，而不是若干独立设备的集合�
 EVT-1 以一块 `Scanner Mainboard` 作为设备电气中心，其核心必须包含或直接承载：
 
 - STM32H7/G4、TCXO、PPS捕获与GPRMC处理；
-- MID-360 PPS/GPRMC输出及四路以上相机Trigger硬件扇出；
-- Camera Strobe/Exposure反馈输入；
+- MID360S PPS/GPRMC输出、MF287单路Trigger输出及Master Exposure反馈输入；
+- 预留额外Trigger/事件IO，但MF287正常工作不要求四路外部触发扇出；
 - USB/UART/CAN、调试与产测接口；
 - NUC、LiDAR、Camera、GNSS、Fan的使能、PGOOD和故障采集；
 - 传感器、电池、NUC和内部数据连接的锁紧连接器；
@@ -110,8 +110,8 @@ LiDAR、四目相机、GNSS接收机、同步器和NUC之间的接口均为机�
 
 传感器暂定：
 
-- 四目鱼眼相机，必须进一步确认外触发、电平、帧计数和曝光反馈能力；
-- Livox MID-360 或 MID-360S，具体型号、固件、线束必须按铭牌冻结；
+- CyperStereo MF287四目鱼眼RGB+IMU相机：单设备USB3/UVC，外触发2.8–3.3 V、最高30 Hz、0.5 ms高电平，内部FPGA同步四路曝光并给图像/IMU打硬件时间戳；
+- Livox MID360S，具体序列号、固件、线束和同步针脚仍须按实物冻结；
 - 能输出 1PPS 与 GPRMC/GNRMC 的 GNSS，RTK 能力另行核验；
 - NUC 计算平台；
 - 带独立 BMS 的电池包。
@@ -128,7 +128,7 @@ LiDAR、四目相机、GNSS接收机、同步器和NUC之间的接口均为机�
 - `HOLDOVER`：曾经锁定 UTC，当前依靠本地振荡器维持，UTC 为估计值且不确定度随时间增长；
 - `LOCAL_SYNC`：从未获得有效 UTC，只保证设备内部同步，绝不能对外宣称为真实 UTC。
 
-MID-360 数据包中的 `timestamp_type=2` 只表示设备接受了 GPS 格式的同步输入，不能单独证明当前时间来自真实 GNSS。ROS 2 和数据集元数据必须额外记录上述时间源状态。
+MID360S 数据包中的同步类型只能说明设备接受了相应格式的同步输入，不能单独证明当前时间来自真实 GNSS。ROS 2 和数据集元数据必须额外记录上述时间源状态。
 
 ### 3.2 GNSS 有效
 
@@ -141,7 +141,7 @@ GNSS GPRMC ─► 校验和/状态/日期/时间/连续性检查
                     │
           ┌─────────┴─────────┐
           ▼                   ▼
-MID-360 PPS + GPRMC      Camera Trigger × 4+
+MID360S PPS + GPRMC      MF287 Trigger × 1
 ```
 
 进入 `GNSS_LOCKED` 不能只看到 PPS 边沿，至少应同时满足：
@@ -170,7 +170,7 @@ MID-360 PPS + GPRMC      Camera Trigger × 4+
 
 - STM32 自主产生连续 1PPS、GPRMC/GNRMC 和 Camera Trigger；
 - 可使用 RTC/上次保存值建立一个合规的合成历元；
-- 对 MID-360 的输出必须满足设备格式和时间范围要求；
+- 对 MID360S 的输出必须满足设备格式和时间范围要求；
 - `utc_status=INVALID`，数据只能解释为同一设备内的相对同步时间。
 
 若设备在 `LOCAL_SYNC` 录制过程中首次获得真实 GNSS，真实 UTC 与合成历元之间可能相差很大。此时不能同时满足“立刻切到真实 UTC”和“时间戳不跳变”。基准策略是：
@@ -181,9 +181,9 @@ MID-360 PPS + GPRMC      Camera Trigger × 4+
 
 从 `HOLDOVER` 恢复 GNSS 不属于上述首次大偏差场景，应平滑重锁。
 
-### 3.5 MID-360 官方输入约束
+### 3.5 MID360S 时间输入约束
 
-以 Livox 官方 MID-360 GPS Time Synchronization 文档为接口基准：
+当前以 Livox 官方 MID-360 GPS Time Synchronization 文档作为预设计输入；原理图冻结前必须再以MID360S实物手册、固件和线束复核：
 
 - PPS 与 UART 均为 3.3 V TTL 时可直接进入相应引脚；不同电平必须转换；
 - UART：9600 baud、8 data bits、no parity，实际实现按 8N1；
@@ -195,7 +195,7 @@ MID-360 PPS + GPRMC      Camera Trigger × 4+
 - 9600 baud 下完整 GPRMC 发送时间约 70 ms；
 - MID-360 GPS 时间范围为 2000-01-01 至 2037-12-31。
 
-以上必须在原理图评审、固件单测和示波器验收中逐项覆盖。MID-360 与 MID-360S 的针脚、固件和同步模式支持必须使用各自最新手册再次确认，不能只按产品外形视为完全相同。
+以上必须在原理图评审、固件单测和示波器验收中逐项覆盖。MID360S 的针脚、固件和同步模式支持必须使用对应实物手册再次确认，不能仅凭 MID-360 公开资料直接定板。
 
 ## 4. Scanner Mainboard（含 Control / Time Sync）
 
@@ -218,9 +218,9 @@ MCU开发板仅用于EVT-0接口验证。进入EVT-1前必须完成主板原理�
 
 - GNSS PPS IN × 1：输入保护、施密特整形、可选电平转换；
 - GNSS UART IN × 1，建议同时预留 GNSS UART TX/配置；
-- MID-360 PPS OUT × 1：独立缓冲与测试点；
-- MID-360 GPRMC UART OUT × 1：3.3 V TTL、9600/8N1；
-- Camera Trigger OUT × 4 以上；
+- MID360S PPS OUT × 1：独立缓冲与测试点；
+- MID360S GPRMC UART OUT × 1：3.3 V TTL、9600/8N1；
+- MF287 Trigger OUT × 1：2.8–3.3 V兼容、不高于30 Hz、高电平0.5 ms，由硬件定时器生成；
 - USB Device 到 NUC，第一版采用 CDC/自定义二进制协议；
 - CAN × 1，用于 BMS/整机状态；
 - SWD/JTAG、Boot、复位、串口日志和关键测试点；
@@ -229,22 +229,20 @@ MCU开发板仅用于EVT-0接口验证。进入EVT-1前必须完成主板原理�
 
 强烈建议增加：
 
-- Camera Strobe/Exposure Feedback IN × 4：证明实际曝光而不是只证明 Trigger 输出；
+- MF287 Master Exposure Feedback IN × 1：证明实际曝光而不是只证明 Trigger 输出；
+- 预留Trigger/Event IO × 3或以上：供后续外设、产测或差分驱动使用；
 - PPS/Trigger 回环输入：用于产测和在线自检；
 - NUC PWRBTN 控制与 `shutdown_ready` 输入；
 - 外部参考时钟/TCXO 监测；
 - 连接逻辑分析仪的统一测试座。
 
-### 4.3 四路相机触发
+### 4.3 MF287触发与时间戳
 
-四路 Trigger 必须来源于同一主定时器更新/比较事件，并满足以下一种实现：
+MF287是一台内含四路成像和IMU的设备，不是四个独立相机。Scanner Mainboard只向MF287输出一路硬件Trigger，由其FPGA在设备内部实现四路同步曝光。Trigger必须由同一设备时间主干的硬件定时器生成，不得使用普通线程或中断临时翻转GPIO。
 
-1. 一个定时器事件驱动低偏斜硬件 fan-out；
-2. 同一定时器的同步输出通道，经过等路径缓冲。
+已确认的输入条件为2.8–3.3 V、最高30 Hz、高电平0.5 ms。主目提供Exposure信号，从目不单独提供；图像时间戳为FPGA记录的曝光结束时刻，同时提供曝光时长，标准测量时刻按 `t_mid = t_end - exposure_duration / 2` 计算。图像与IMU共用FPGA时间系统，但FPGA时间轴与STM32设备时间的偏移/漂移关系仍需通过Trigger事件和SDK实测建立。
 
-禁止使用中断或任务中依次调用四次 GPIO 翻转。各路应使用相同器件、布线拓扑和连接器，必要时按线缆阻抗与相机输入规格增加串联终端。相机输入可能是 3.3 V、5 V、开漏、差分或光耦，不能在供应商未确认前把“Trigger 3.3 V”写死为最终接口。
-
-每次 Trigger 需要产生单调递增的 `trigger_count`。相机驱动应尽量读取硬件帧号/触发号并与其对应；若相机不提供帧号或曝光反馈，丢一帧后仅凭到达顺序无法可靠配对，这是相机选型的 P0 条件。
+每次Trigger产生单调递增的`trigger_count`。相机驱动应读取FPGA硬件帧号/时间戳并对应该计数；帧号、丢帧行为、时间戳分辨率/回绕周期和Master Exposure信号电气定义仍为P0待验证项。
 
 ## 5. BMS 与电源管理
 
@@ -304,7 +302,7 @@ NUC 关机必须有软件握手和超时策略，不能按键后直接切断 SSD
 
 - `time_input`：PPS捕获、NMEA接收和有效性检查；
 - `clock_servo`：相位/频率估计、holdover误差模型；
-- `time_output`：MID-360 PPS/GPRMC生成；
+- `time_output`：MID360S PPS/GPRMC生成；
 - `camera_trigger`：硬件定时器、计数器和反馈捕获；
 - `power_fsm`：上电、运行、正常关机和故障状态机；
 - `bms_can`：BMS状态、限值和故障；
@@ -336,8 +334,11 @@ utc_status: VALID | ESTIMATED | INVALID
 pps_locked: bool
 holdover_seconds: uint32
 estimated_clock_error_ns: int64/uint64
-trigger_count[4]
-trigger_feedback_count[4]
+trigger_count: uint64
+exposure_feedback_count: uint64
+camera_clock_mapping_valid: bool
+camera_clock_offset_ns: int64
+camera_clock_drift_ppm: float64
 gnss_rmc_valid: bool
 lidar_sync_reported: bool
 ```
@@ -367,10 +368,10 @@ EVT-1结构评审至少应包含：整机尺寸和重量、重心、安装刚度
 
 EVT-0只用于降低原理图和整机设计风险，可以采用开发板、临时电源和实验线束，但必须完成：
 
-1. 验证MID-360/MID-360S、相机、GNSS、NUC和BMS的真实接口、电平、功耗与启动行为；
-2. 产生MID-360 PPS + GPRMC和四路同步Trigger；
+1. 验证MID360S、MF287、GNSS、NUC和BMS的真实接口、电平、功耗与启动行为；
+2. 产生MID360S PPS + GPRMC和MF287单路同步Trigger；
 3. 跑通GNSS锁定、holdover和local sync三个时间状态；
-4. 证明四路Trigger来自同一硬件时间事件；
+4. 证明MF287 Trigger来自硬件定时器，并验证其内部四目同步曝光；
 5. 完成示波器、端到端时间戳、浪涌功耗和热测试报告；
 6. 冻结EVT-1所需连接器、线束、电源预算和Scanner Mainboard输入条件。
 
@@ -382,7 +383,7 @@ EVT-1必须完成：
 
 1. 使用定制Scanner Mainboard或通过评审的固定主板+电源子板组件，移除功能性开发板和通用降压模块；
 2. 将BMS封装在可更换电池组件内，由主板统一完成NUC、LiDAR、Camera、GNSS和Fan的时序控制；
-3. MID-360、四目相机和GNSS天线形成刚性传感器头，完成可复现装配和外参标定；
+3. MID360S、MF287和GNSS天线形成刚性传感器头，完成可复现装配和外参标定；
 4. NUC、主板、内部Hub/交换功能和线束全部归入统一外壳、散热和维护结构；
 5. 实现一块电池、一个主按键、统一状态指示、统一充电与维护接口；
 6. ROS 2读取时间源、同步、电源和电池状态，并能录制MID-360点云/IMU、四目图像与GNSS数据；
@@ -412,17 +413,18 @@ EVT-1不要求：自研BMS量产板、极限holdover指标、四目实时紧耦�
 至少测量并保存波形/原始数据：
 
 - GNSS PPS IN 与 STM32捕获/输出关系；
-- MID-360 PPS OUT 的周期、高电平、斜率和抖动；
+- MID360S PPS OUT 的周期、高电平、斜率和抖动；
 - GPRMC开始时刻、发送时长、内容和校验和；
-- 四路Camera Trigger的通道间偏差；
-- Trigger与MID-360 PPS的固定相位关系；
+- MF287 Trigger的周期、脉宽、电平和抖动；
+- Trigger与MID360S PPS的固定相位关系；
+- Trigger与MF287 Master Exposure反馈的延迟和稳定性；
 - GNSS断开前后、holdover期间和重锁过程；
 - 电源上电、掉电和各路PGOOD时序。
 
 首版暂定工程目标（供应商接口确认后冻结）：
 
-- 四路Trigger连接器处通道间偏差不大于1 μs；
 - 相同状态下Trigger周期抖动不大于1 μs；
+- Trigger高电平保持0.5 ms，频率不高于30 Hz；
 - 端到端相机曝光与LiDAR时间残差先达到1 ms级并给出统计分布；
 - GNSS暂失与恢复过程中设备时间不回退；
 - holdover分别测试10 min、30 min、60 min并报告漂移，不在TCXO选型前虚构长期精度。
@@ -440,16 +442,17 @@ EVT-1不要求：自研BMS量产板、极限holdover指标、四目实时紧耦�
 
 软件下一版本仍保持小步目标：
 
-> 完成 MID-360 与内置 IMU 接入，跑通 FAST-LIO2 基础建图。
+> 完成 MID360S 与内置 IMU 接入，跑通 FAST-LIO2 基础建图。
 
-硬件同步链路可在EVT-0中并行使用开发板和示波器推进，但在MID-360单传感器链路、相机外触发能力、GNSS输出规格、负载浪涌和NUC关机接口未验证前，不冻结EVT-1 Scanner Mainboard。软件小步推进不降低EVT-1的整机集成要求。
+硬件同步链路可在EVT-0中并行使用开发板和示波器推进，但在MID360S单传感器链路、MF287端到端触发/时间戳、GNSS输出规格、负载浪涌和NUC关机接口未验证前，不冻结EVT-1 Scanner Mainboard。软件小步推进不降低EVT-1的整机集成要求。
 
 雷达先行阶段必须位于同一AgriSense-360工作空间、统一启动入口和最终话题/TF约定内，不建立日后再拼接的独立雷达工程。后续MF287、GNSS与Scanner Mainboard以设备配置增量接入；软件包的职责分层不等同于物理模块拼装。
 
 ## 11. P0 待确认项
 
-- 实物到底是 MID-360 还是 MID-360S，固件、连接器和时间同步针脚；
-- 四目相机是否接受外部Trigger，电平/脉宽/频率、曝光边沿、帧号与Strobe；
+- MID360S序列号、固件、连接器、时间同步针脚及其与MID-360公开协议的差异；
+- MF287硬件帧号/丢帧行为、Master Exposure反馈电气定义、FPGA时间戳分辨率/回绕/漂移；
+- MF287四路相机ID与160°/200°镜头对应关系、出厂标定文件和机械尺寸图；
 - GNSS准确型号、1PPS电平、RMC时序、失锁时行为、RTK状态与CAN/UART协议；
 - NUC输入电压、峰值功耗、PWRBTN和安全关机接口；
 - 现成电池/BMS的串数、化学体系、持续/峰值电流和通信协议；
@@ -476,7 +479,7 @@ EVT-1不要求：自研BMS量产板、极限holdover指标、四目实时紧耦�
 2. STM32从“可选同步器”升级为整机时间、触发、电源时序和状态管理核心；
 3. 本地合成时间必须标记为非UTC，不能只凭LiDAR同步类型宣称真实UTC；
 4. 增加首次LOCAL→UTC切换的会话边界策略，避免时间戳跳变；
-5. 四路相机使用同一Timer事件或低偏斜fan-out，并增加曝光反馈与帧号要求；
+5. MF287改为单路硬件Trigger，四目同步由设备内部FPGA完成，同时保留Master Exposure反馈与硬件帧号要求；
 6. BMS保持独立安全域，第一版使用现成方案；
 7. Scanner Mainboard与可选电源子板边界明确，NUC采用可握手的正常关机；
 8. EVT-0以示波器、电气接口和端到端测量时间验证为重点，EVT-1同时接受整机集成验收，不追求一次完成所有融合算法；

@@ -1,0 +1,31 @@
+schema_version: 1
+device_name: AgriSense-360
+profile: lio
+release: 0.2.0
+
+compute:
+  architecture: x86_64
+  os: Ubuntu 22.04
+  ros_distribution: humble
+  cpu_candidate: Intel N100
+  exact_model: UNCONFIRMED
+
+sensors:
+  lidar:
+    model: Livox MID360S
+    enabled_in_profile: true
+  camera:
+    model: CyperStereo MF287
+    enabled_in_profile: false
+    integration_status: INTERFACE_CONFIRMED_DRIVER_PENDING
+  gnss_receiver:
+    model: UNCONFIRMED
+    enabled_in_profile: false
+    note: BT800D is only the antenna and is not a receiver
+  scanner_mainboard:
+    model: EVT_PENDING
+    enabled_in_profile: false
+
+calibration:
+  status: UNCALIBRATED
+  fake_identity_transforms_allowed: false
