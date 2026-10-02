@@ -1,0 +1,47 @@
+schema_version: 1
+calibration_status: UNCALIBRATED
+
+# Names are frozen now; numerical transforms must come from measured calibration.
+# Do not publish identity transforms as placeholders.
+frames:
+  global: map
+  local_odometry: odom
+  device_body: base_link
+  lidar: lidar_link
+  lidar_imu: lidar_imu_link
+  camera_rig: camera_rig_link
+  camera_0: camera_0_link
+  camera_1: camera_1_link
+  camera_2: camera_2_link
+  camera_3: camera_3_link
+  camera_imu: camera_imu_link
+  gnss_antenna_phase_center: gnss_link
+
+required_transforms:
+  - parent: base_link
+    child: lidar_link
+    source: mechanical_measurement_then_calibration
+  - parent: lidar_link
+    child: lidar_imu_link
+    source: MID360S_factory_definition
+  - parent: base_link
+    child: camera_rig_link
+    source: mechanical_measurement_then_calibration
+  - parent: camera_rig_link
+    child: camera_0_link
+    source: MF287_factory_or_multicamera_calibration
+  - parent: camera_rig_link
+    child: camera_1_link
+    source: MF287_factory_or_multicamera_calibration
+  - parent: camera_rig_link
+    child: camera_2_link
+    source: MF287_factory_or_multicamera_calibration
+  - parent: camera_rig_link
+    child: camera_3_link
+    source: MF287_factory_or_multicamera_calibration
+  - parent: camera_rig_link
+    child: camera_imu_link
+    source: MF287_factory_or_camera_imu_calibration
+  - parent: base_link
+    child: gnss_link
+    source: surveyed_lever_arm

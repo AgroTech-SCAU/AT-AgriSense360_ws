@@ -1,0 +1,14 @@
+<?xml version="1.0"?>
+<package format="3">
+  <name>agrisense360_description</name>
+  <version>0.2.0</version>
+  <description>Frame and calibration contracts for the AgriSense-360 rigid sensor head.</description>
+  <maintainer email="3186295108@qq.com">LaNHuii</maintainer>
+  <license>Apache-2.0</license>
+
+  <buildtool_depend>ament_cmake</buildtool_depend>
+
+  <export>
+    <build_type>ament_cmake</build_type>
+  </export>
+</package>
