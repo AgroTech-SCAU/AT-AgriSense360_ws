@@ -1,0 +1,27 @@
+schema_version: 1
+
+# Vendor topics end at their integration packages. New application code should
+# consume the stable topics below once the corresponding adapters are enabled.
+vendor_inputs:
+  mid360s_points: /livox/lidar
+  mid360s_imu: /livox/imu
+
+stable_topics:
+  lidar_points: /sensors/lidar/points
+  lidar_imu: /sensors/lidar/imu
+  camera_images:
+    - /sensors/camera/cam0/image_raw
+    - /sensors/camera/cam1/image_raw
+    - /sensors/camera/cam2/image_raw
+    - /sensors/camera/cam3/image_raw
+  camera_imu: /sensors/camera/imu
+  gnss_fix: /sensors/gnss/fix
+  time_sync_status: /system/time_sync/status
+  power_status: /system/power/status
+  battery_status: /battery/status
+  diagnostics: /diagnostics
+
+mapping_outputs:
+  odometry: /localization/lio/odometry
+  path: /localization/lio/path
+  registered_cloud: /mapping/cloud_registered

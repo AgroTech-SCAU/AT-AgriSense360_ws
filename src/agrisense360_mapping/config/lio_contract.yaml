@@ -1,0 +1,29 @@
+schema_version: 1
+status: EVALUATION_CANDIDATE_PINNED
+candidate:
+  repository: https://github.com/Ericsii/FAST_LIO_ROS2.git
+  commit: 2fffc570a25d0df172720bac034fbdb6a13d2162
+  license: GPL-2.0
+  production_approval: false
+
+# The upstream HKU-MARS FAST_LIO repository is ROS 1 oriented. A ROS 2 port
+# must pass source, license, message, maintenance and replay review before pinning.
+required_inputs:
+  pointcloud_topic: /livox/lidar
+  pointcloud_type: livox_ros_driver2/msg/CustomMsg
+  imu_topic: /livox/imu
+  imu_type: sensor_msgs/msg/Imu
+
+required_outputs:
+  odometry_topic: /localization/lio/odometry
+  path_topic: /localization/lio/path
+  registered_cloud_topic: /mapping/cloud_registered
+  map_frame: map
+  odometry_frame: odom
+  body_frame: lidar_imu_link
+
+acceptance:
+  bag_replay_reproducible: true
+  parameters_versioned: true
+  fake_extrinsics_forbidden: true
+  runtime_minutes_without_exit: 30

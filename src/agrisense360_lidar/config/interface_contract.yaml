@@ -1,0 +1,25 @@
+schema_version: 1
+sensor_model: Livox MID360S
+driver_package: livox_ros_driver2
+driver_version: UNPINNED
+device_firmware: UNCONFIRMED
+
+vendor_topics:
+  pointcloud:
+    name: /livox/lidar
+    type: livox_ros_driver2/msg/CustomMsg
+    frame_id: lidar_link
+  imu:
+    name: /livox/imu
+    type: sensor_msgs/msg/Imu
+    frame_id: lidar_imu_link
+
+verification_required:
+  - serial_number
+  - firmware_version
+  - lidar_and_host_ipv4
+  - udp_ports
+  - pointcloud_rate_and_qos
+  - imu_rate_units_axes_and_qos
+  - hardware_timestamp_semantics
+  - lidar_to_internal_imu_transform
