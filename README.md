@@ -26,10 +26,13 @@ AT-AgriSense360_ws/
 │   ├── agrisense360_mapping/    # FAST-LIO2选型与输出契约
 │   ├── agrisense360_bringup/    # 唯一整机启动入口
 │   └── vendor/                  # 固定提交的第三方依赖
-├── tools/                           # 可重复构建脚本
-├── build/                        # colcon生成，忽略
-├── install/                      # colcon生成，忽略
-└── log/                          # colcon生成，忽略
+├── tools/                         # 可重复构建和离线验证脚本
+├── datasets/                      # 本地数据集（仅提交说明，不提交大文件）
+├── output/                        # 自动生成的地图与评估结果
+├── .deps/                         # 工作区本地安装的第三方库
+├── build/                         # colcon 生成，忽略
+├── install/                       # colcon 生成，忽略
+└── log/                           # ROS/colcon 生成，忽略
 ```
 
 ## 当前迭代
@@ -39,9 +42,15 @@ AT-AgriSense360_ws/
 基础构建：
 
 ```bash
+./tools/import_dependencies.sh
+./tools/build_livox_sdk2.sh
 ./tools/build_workspace.sh
 source install/setup.bash
+ros2 pkg executables livox_ros_driver2
 ```
+
+SDK2 安装在工作空间的 `.deps/install/livox-sdk2`；雷达启动入口会优先加载这份 SDK，避免误用主机上另一版本的同名动态库。上述构建与节点发现已经验证，实机网络、点云和 IMU 数据仍需连接 MID360S 后验收。
+如果终端启用了 Conda，运行 ROS 2 命令前先执行 `conda deactivate`，避免 Conda 的 `libstdc++` 与系统 ROS 2 扩展冲突。
 
 无实物雷达时的离线链路：
 
@@ -55,7 +64,29 @@ bag=$(find datasets/public/driving_slam_mid360/extracted -name metadata.yaml -pr
 ./tools/run_offline_lio.sh "$bag"
 ```
 
+脚本会自动识别两种输入：`/livox/points` 的标准 `PointCloud2`，以及
+`/livox/lidar` 的 `livox_ros_driver2/msg/CustomMsg`。地图默认写入
+`output/offline_lio/<数据包目录名>_map.pcd`，输出目录不需要手工创建。
+
+同一次回放同时生成三维 PCD 和 Nav2 二维占据栅格：
+
+```bash
+./tools/run_offline_lio.sh \
+  /absolute/path/to/rosbag2-directory \
+  "$PWD/output/offline_lio/mid360_3d_map.pcd" \
+  "$PWD/output/offline_lio/mid360_2d_map"
+```
+
+第三个参数是二维地图前缀，完成后会得到 `mid360_2d_map.pgm` 和
+`mid360_2d_map.yaml`。其中 PGM 是可直接查看的二维栅格图，PGM 与 YAML
+组合后就是 Nav2 使用的 `OccupancyGrid` 静态地图。当前高度切片是手持数据的
+初始值，雷达固定上车后必须按照安装高度重新标定。
+
 公开数据配置仅用于算法链路验证，不是AgriSense-360实机外参。
+
+VS Code 使用 `build/fast_lio/compile_commands.json` 解析 FAST-LIO2
+头文件。修改依赖或 CMake 配置后重新运行 `./tools/build_workspace.sh`；不要把
+CMake 工程指向 `third_party/.../samples` 下的 SDK 示例目录。
 
 当前不提交未核验的Livox JSON或假外参。安装并锁定第三方驱动后，整机仍从同一入口启动：
 

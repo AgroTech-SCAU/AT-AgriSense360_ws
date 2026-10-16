@@ -2,7 +2,9 @@ build/
 install/
 log/
 .colcon/
-.vscode/
+.vscode/*
+!.vscode/settings.json
+!.vscode/extensions.json
 .idea/
 *.bag
 *.db3
@@ -19,4 +21,5 @@ config/local/
 third_party/
 datasets/*
 !datasets/README.md
-output/
+output/*
+!output/README.md

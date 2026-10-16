@@ -1,0 +1,12 @@
+{
+    "cmake.configureOnOpen": false,
+    "C_Cpp.default.compileCommands": "${workspaceFolder}/build/fast_lio/compile_commands.json",
+    "C_Cpp.default.compilerPath": "/usr/bin/c++",
+    "C_Cpp.default.intelliSenseMode": "linux-gcc-x64",
+    "files.exclude": {
+        "**/__pycache__": true,
+        "build": true,
+        "install": true,
+        "log": true
+    }
+}

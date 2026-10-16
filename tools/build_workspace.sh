@@ -31,4 +31,5 @@ colcon build \
     -DROS_EDITION=ROS2 \
     -DDISTRO_ROS=humble \
     -DPYTHON_EXECUTABLE=/usr/bin/python3 \
-    -DPython3_EXECUTABLE=/usr/bin/python3
+    -DPython3_EXECUTABLE=/usr/bin/python3 \
+    -DCMAKE_EXPORT_COMPILE_COMMANDS=ON

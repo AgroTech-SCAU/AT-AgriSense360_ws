@@ -50,5 +50,7 @@
       scan_bodyframe_pub_en: true
 
     pcd_save:
-      pcd_save_en: false
+      # Enables the explicit /mapping/save service used by the offline helper.
+      # A file is written only when that service is called.
+      pcd_save_en: true
       interval: -1
