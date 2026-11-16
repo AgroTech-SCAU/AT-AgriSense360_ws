@@ -13,7 +13,9 @@ from launch.substitutions import LaunchConfiguration
 def generate_launch_description():
     enable_lidar = LaunchConfiguration("enable_lidar")
     enable_mapping = LaunchConfiguration("enable_mapping")
+    enable_control = LaunchConfiguration("enable_control")
     livox_config = LaunchConfiguration("livox_config")
+    control_port = LaunchConfiguration("control_port")
 
     lidar_launch = Path(
         get_package_share_directory("agrisense360_lidar")
@@ -21,6 +23,9 @@ def generate_launch_description():
     mapping_launch = Path(
         get_package_share_directory("agrisense360_mapping")
     ) / "launch" / "fast_lio2.launch.py"
+    control_launch = Path(
+        get_package_share_directory("scanner_control_driver")
+    ) / "launch" / "scanner_control_driver.launch.py"
 
     return LaunchDescription([
         DeclareLaunchArgument(
@@ -43,6 +48,16 @@ def generate_launch_description():
             default_value="",
             description="Absolute path to the verified MID360S driver JSON.",
         ),
+        DeclareLaunchArgument(
+            "enable_control",
+            default_value="false",
+            description="Enable the read-only TimeSyncV2 scanner mainboard adapter.",
+        ),
+        DeclareLaunchArgument(
+            "control_port",
+            default_value="/dev/agrisense-timesync",
+            description="TimeSyncV2 USB CDC stable device alias.",
+        ),
         IncludeLaunchDescription(
             PythonLaunchDescriptionSource(str(lidar_launch)),
             launch_arguments={
@@ -54,6 +69,11 @@ def generate_launch_description():
             PythonLaunchDescriptionSource(str(mapping_launch)),
             condition=IfCondition(enable_mapping),
             launch_arguments={"use_sim_time": "false"}.items(),
+        ),
+        IncludeLaunchDescription(
+            PythonLaunchDescriptionSource(str(control_launch)),
+            condition=IfCondition(enable_control),
+            launch_arguments={"port": control_port}.items(),
         ),
         LogInfo(
             condition=UnlessCondition(enable_lidar),
