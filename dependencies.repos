@@ -11,3 +11,13 @@ repositories:
     type: git
     url: https://github.com/Ericsii/FAST_LIO_ROS2.git
     version: 2fffc570a25d0df172720bac034fbdb6a13d2162
+  src/vendor/CyperstereoSDK:
+    type: git
+    url: https://github.com/Cyperstereo/CyperstereoSDK.git
+    version: 30e1a7899f419af08f59cb476ddb87c5514de189
+  # ROS 1 / catkin, run in a container only; never import into src/ or build
+  # with colcon. Official CyperStereo calibration workflow (pinhole-equi).
+  third_party/sources/kalibr:
+    type: git
+    url: https://github.com/ethz-asl/kalibr.git
+    version: 1f60227442d25e36365ef5f72cd80b9666d73467

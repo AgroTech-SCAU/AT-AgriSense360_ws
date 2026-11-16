@@ -24,7 +24,28 @@ if [[ -d "${livox_sdk_prefix}" ]]; then
   export LD_LIBRARY_PATH="${livox_sdk_prefix}/lib:${LD_LIBRARY_PATH:-}"
 fi
 
+# Build only src/.  third_party/ is deliberately outside this colcon
+# invocation: Livox-SDK2 is installed into .deps by build_livox_sdk2.sh, and
+# Kalibr is ROS 1/catkin and runs in its own container.
+#
+# The camera SDK also ships ROS 1/catkin packages, standalone CMake tools and
+# samples under src/vendor.  Only ros2/src/data_cap belongs to the Humble
+# workspace, so use an explicit allow-list instead of scanning every package.
+workspace_packages=(
+  agrisense360_bringup
+  agrisense360_description
+  agrisense360_interfaces
+  agrisense360_lidar
+  agrisense360_mapping
+  scanner_control_driver
+  livox_ros_driver2
+  fast_lio
+  data_cap
+)
+
 colcon build \
+  --base-paths src \
+  --packages-select "${workspace_packages[@]}" \
   --symlink-install \
   --cmake-args \
     --no-warn-unused-cli \

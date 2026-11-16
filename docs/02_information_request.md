@@ -25,11 +25,20 @@
 
 ### CyperStereo MF287
 
-已确认：支持单路外部Trigger，2.8–3.3 V、最高30 Hz、0.5 ms高电平；设备内部FPGA使四路同步曝光；图像和IMU使用同一FPGA时间系统；图像时间戳为曝光结束时刻并提供曝光时长；整机通过一个USB3/UVC设备传输；Master提供曝光信号，Slave不提供。
+已确认：支持单路外部 Trigger，**3.3 V 可直接驱动**（厂商引脚图标注 2.8 V 逻辑；3.3 V 驱动已于 2026-11-13 确认可用，绝对最大额定值和长期电平余量仍建议厂商书面确认）、最高 30 Hz、0.5 ms 高电平；设备内部FPGA使四路同步曝光；图像和IMU使用同一FPGA时间系统；图像时间戳为曝光结束时刻并提供曝光时长；整机通过一个USB3/UVC设备传输；Master提供曝光信号，Slave不提供。
+
+引脚图已确认（2026-11-13）：
+
+- Trigger 接口为 `Trigger 0` / `Trigger 1`：`Trigger 0` 开始曝光；`Trigger 1` 用于 HDR 二次曝光/光斑点触发。正常采集只使用 `Trigger 0`；
+- 右侧“同步接口”是 3.3 V 逻辑：`GPIO0` 在 master 模式下是 `Trigger_out` 输出（30 Hz），不能当作触发输入；`UART_RX` 用于可选 GNSS NMEA 输入；
+- 相机由 Type-C 5 V / 0.35–0.4 A 供电，IMU SPI 为 3.3 V 逻辑。
+
+实测记录（2026-11-13）：TimeSyncV2 CAM1 以 3.3 V、10 Hz/5 Hz、0.5 ms 输出时，`pulses` 正常增长；关闭/开启触发、改变触发频率时，MF287 的图像帧间隔均不跟随。初接一侧焊盘时为 33/66 ms 交替（约 20 fps）；换到另一侧焊盘后变为稳定 33.3 ms（30 fps），但 5 Hz 触发仍不影响帧率，说明不是 Trigger 0/1 接反，而是相机固件仍处于 master 自由运行模式。相机上报固件为 **2/7（SC136HGS quad/02）**；SDK 仅使用 UVC XU unit 3 的 selector 2/8/9 做链路/协议/skew 诊断，selector 1–7 为 ISP/AE/统计/标定参数，未发现触发或 master/slave 控制接口。上游 `develop` 分支（2026-11-16，`30e1a789`）及 `CyperstereoView-3.0` 也未提供触发/主从接口；View 工具中的 `slave`/`slave_double` 仅指 FX3 固件变体，不是相机外触发模式。
 
 仍需确认：
 
-- Trigger连接针脚、输入保护要求和Master Exposure反馈针脚/电气定义；
+- 如何切换到外部触发/slave 模式（SDK/固件/UVC 控制或 GPIO 配置）；
+- Trigger 输入在 3.3 V 驱动下的绝对最大额定值/长期可靠性，以及输入保护要求；Master Exposure 反馈针脚/电气定义；
 - Trigger到曝光开始/结束的延迟及抖动；
 - SDK是否输出硬件帧号/trigger counter，丢帧后四路序号如何处理；
 - FPGA时间戳的单位、分辨率、回绕周期、复位行为和相对外部Trigger的漂移；

@@ -110,7 +110,7 @@ LiDAR、四目相机、GNSS接收机、同步器和NUC之间的接口均为机�
 
 传感器暂定：
 
-- CyperStereo MF287四目鱼眼RGB+IMU相机：单设备USB3/UVC，外触发2.8–3.3 V、最高30 Hz、0.5 ms高电平，内部FPGA同步四路曝光并给图像/IMU打硬件时间戳；
+- CyperStereo MF287四目鱼眼RGB+IMU相机：单设备USB3/UVC，外触发 **3.3 V 可用**（厂商引脚图标注 2.8 V 逻辑，2026-11-13 确认 3.3 V 可直接驱动；仅使用 `Trigger 0`）、最高30 Hz、0.5 ms高电平，内部FPGA同步四路曝光并给图像/IMU打硬件时间戳；
 - Livox MID360S，具体序列号、固件、线束和同步针脚仍须按实物冻结；
 - 能输出 1PPS 与 GPRMC/GNRMC 的 GNSS，RTK 能力另行核验；
 - NUC 计算平台；
@@ -220,7 +220,7 @@ MCU开发板仅用于EVT-0接口验证。进入EVT-1前必须完成主板原理�
 - GNSS UART IN × 1，建议同时预留 GNSS UART TX/配置；
 - MID360S PPS OUT × 1：独立缓冲与测试点；
 - MID360S GPRMC UART OUT × 1：3.3 V TTL、9600/8N1；
-- MF287 Trigger OUT × 1：2.8–3.3 V兼容、不高于30 Hz、高电平0.5 ms，由硬件定时器生成；
+- MF287 Trigger OUT × 1：3.3 V 输出（相机引脚图标注 2.8 V 逻辑，3.3 V 已确认可用；仅接 `Trigger 0`）、不高于30 Hz、高电平0.5 ms，由硬件定时器生成；
 - USB Device 到 NUC，第一版采用 CDC/自定义二进制协议；
 - CAN × 1，用于 BMS/整机状态；
 - SWD/JTAG、Boot、复位、串口日志和关键测试点；
@@ -240,9 +240,11 @@ MCU开发板仅用于EVT-0接口验证。进入EVT-1前必须完成主板原理�
 
 MF287是一台内含四路成像和IMU的设备，不是四个独立相机。Scanner Mainboard只向MF287输出一路硬件Trigger，由其FPGA在设备内部实现四路同步曝光。Trigger必须由同一设备时间主干的硬件定时器生成，不得使用普通线程或中断临时翻转GPIO。
 
-已确认的输入条件为2.8–3.3 V、最高30 Hz、高电平0.5 ms。主目提供Exposure信号，从目不单独提供；图像时间戳为FPGA记录的曝光结束时刻，同时提供曝光时长，标准测量时刻按 `t_mid = t_end - exposure_duration / 2` 计算。图像与IMU共用FPGA时间系统，但FPGA时间轴与STM32设备时间的偏移/漂移关系仍需通过Trigger事件和SDK实测建立。
+已确认的输入条件为 **3.3 V 可用**（厂商引脚图标注 2.8 V 逻辑，2026-11-13 确认 3.3 V 可直接驱动）、最高30 Hz、高电平0.5 ms。正常采集只使用 `Trigger 0` 作为曝光触发；`Trigger 1` 仅用于 HDR 二次曝光/光斑点触发，第一版不接。右侧 3.3 V 同步接口的 `GPIO0` 是 master 模式下的 `Trigger_out` 输出，不能作为外部触发输入。主目提供Exposure信号，从目不单独提供；图像时间戳为FPGA记录的曝光结束时刻，同时提供曝光时长，标准测量时刻按 `t_mid = t_end - exposure_duration / 2` 计算。图像与IMU共用FPGA时间系统，但FPGA时间轴与STM32设备时间的偏移/漂移关系仍需通过Trigger事件和SDK实测建立。
 
 每次Trigger产生单调递增的`trigger_count`。相机驱动应读取FPGA硬件帧号/时间戳并对应该计数；帧号、丢帧行为、时间戳分辨率/回绕周期和Master Exposure信号电气定义仍为P0待验证项。
+
+实测（2026-11-13）：TimeSyncV2 3.3 V 触发输出正常（CAM1 `pulses` 随 10/5 Hz 配置增长），但 MF287 在触发开启和关闭两种状态下均自由运行。初接一侧 Trigger 焊盘时为 33/66 ms 交替（约 20 fps）；换到另一侧后变为稳定 33.3 ms（30 fps），5 Hz 触发仍不影响帧率。说明不是 Trigger 0/1 接反，而是相机固件仍处于 master 自由运行模式。切换方法待厂商确认；不能把“同步板有脉冲”当作触发链路已验收。
 
 ## 5. BMS 与电源管理
 

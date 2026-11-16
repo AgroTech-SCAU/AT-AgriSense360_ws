@@ -1,7 +1,8 @@
 schema_version: 1
 sensor_model: Livox MID360S
 driver_package: livox_ros_driver2
-driver_version: UNPINNED
+driver_version: 1.2.6
+driver_commit: 13eb05e4e6dd7a765b934d0c5fd6236676a57b49
 device_firmware: UNCONFIRMED
 
 vendor_topics:
