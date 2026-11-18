@@ -14,12 +14,12 @@ def generate_launch_description():
     enable_lidar = LaunchConfiguration("enable_lidar")
     enable_mapping = LaunchConfiguration("enable_mapping")
     enable_control = LaunchConfiguration("enable_control")
-    livox_config = LaunchConfiguration("livox_config")
+    device_config = LaunchConfiguration("device_config")
     control_port = LaunchConfiguration("control_port")
 
     lidar_launch = Path(
         get_package_share_directory("handheld_scanner_lidar")
-    ) / "launch" / "mid360s.launch.py"
+    ) / "launch" / "lidar.launch.py"
     mapping_launch = Path(
         get_package_share_directory("handheld_scanner_mapping")
     ) / "launch" / "fast_lio2.launch.py"
@@ -44,9 +44,9 @@ def generate_launch_description():
             description="Enable only after a FAST-LIO2 ROS 2 implementation is pinned.",
         ),
         DeclareLaunchArgument(
-            "livox_config",
+            "device_config",
             default_value="",
-            description="Absolute path to the verified MID360S driver JSON.",
+            description="Absolute path to the verified device JSON (MID360S for the current lidar).",
         ),
         DeclareLaunchArgument(
             "enable_control",
@@ -62,7 +62,7 @@ def generate_launch_description():
             PythonLaunchDescriptionSource(str(lidar_launch)),
             launch_arguments={
                 "enabled": enable_lidar,
-                "config_file": livox_config,
+                "device_config": device_config,
             }.items(),
         ),
         IncludeLaunchDescription(
@@ -77,6 +77,6 @@ def generate_launch_description():
         ),
         LogInfo(
             condition=UnlessCondition(enable_lidar),
-            msg="MID360S is disabled; set enable_lidar:=true after installing its pinned driver.",
+            msg="Lidar is disabled; set enable_lidar:=true after installing its pinned driver.",
         ),
     ])

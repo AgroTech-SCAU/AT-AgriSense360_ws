@@ -23,11 +23,13 @@ Handheld-scanner/
 ├── src/
 │   ├── handheld_scanner_interfaces/  # 整机时间与电源状态消息
 │   ├── handheld_scanner_description/ # 最终坐标系与标定契约
-│   ├── handheld_scanner_lidar/       # MID360S驱动边界
+│   ├── handheld_scanner_lidar/       # 型号无关雷达适配（当前 MID360S）
+│   ├── handheld_scanner_camera/      # 型号无关相机适配（当前 MF287）
 │   ├── handheld_scanner_mapping/     # FAST-LIO2选型与输出契约
 │   ├── handheld_scanner_bringup/     # 唯一整机启动入口
 │   ├── handheld_scanner_timesync/    # 时间同步板只读状态轮询
 │   └── vendor/                       # 固定提交的第三方依赖
+├── patches/                          # 第三方源码补丁（由 import 脚本应用）
 ├── tools/                            # 可重复构建脚本
 ├── build/                            # colcon生成，忽略
 ├── install/                          # colcon生成，忽略
@@ -63,5 +65,5 @@ bag=$(find datasets/public/driving_slam_mid360/extracted -name metadata.yaml -pr
 
 ```bash
 ros2 launch handheld_scanner_bringup handheld_scanner.launch.py \
-  enable_lidar:=true livox_config:=/absolute/path/to/verified_mid360s.json
+  enable_lidar:=true device_config:=/absolute/path/to/verified_mid360s.json
 ```

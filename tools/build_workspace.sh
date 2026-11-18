@@ -24,6 +24,21 @@ if [[ -d "${livox_sdk_prefix}" ]]; then
   export LD_LIBRARY_PATH="${livox_sdk_prefix}/lib:${LD_LIBRARY_PATH:-}"
 fi
 
+# The adapter packages set output topics/frames through driver parameters.
+# Without the patches the drivers silently keep vendor names, so fail early.
+check_vendor_patch() {
+  local repo="$1" patch="$2"
+  if ! git -C "${repo}" apply --reverse --check "${patch}" 2>/dev/null; then
+    echo "Vendor patch not applied: ${patch}" >&2
+    echo "Run ./tools/import_dependencies.sh first." >&2
+    exit 1
+  fi
+}
+check_vendor_patch "src/vendor/livox_ros_driver2" \
+  "patches/livox_ros_driver2/0001-parameterize-outputs.patch"
+check_vendor_patch "src/vendor/CyperstereoSDK" \
+  "patches/CyperstereoSDK/0001-parameterize-outputs.patch"
+
 # Build only src/.  third_party/ is deliberately outside this colcon
 # invocation: Livox-SDK2 is installed into .deps by build_livox_sdk2.sh, and
 # Kalibr is ROS 1/catkin and runs in its own container.
@@ -33,6 +48,7 @@ fi
 # workspace, so use an explicit allow-list instead of scanning every package.
 workspace_packages=(
   handheld_scanner_bringup
+  handheld_scanner_camera
   handheld_scanner_description
   handheld_scanner_interfaces
   handheld_scanner_lidar

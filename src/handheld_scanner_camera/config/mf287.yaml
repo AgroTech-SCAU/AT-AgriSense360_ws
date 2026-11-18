@@ -1,0 +1,24 @@
+# CyperStereo MF287 — facts about the currently used module.
+#
+# Apart from the frame parameters added by the project patch, data_cap
+# declares no ROS parameters, so this file is a record for operators and for
+# the next adapter implementation, not driver input. Runtime values
+# still have to be confirmed on hardware (see verification_required in
+# adapter_contract.yaml).
+model: CyperStereo MF287
+vendor_library: CyperstereoSDK
+interface: USB UVC, user-space V4L2 access through the vendor SDK
+raw_stream: 2560x1024 YUYV
+plane_layout: four 1280x1024 planes, byte-interleaved
+outputs:
+  images: /cam0..5/image_raw        # 4 and 5 stay silent in four-camera mode
+  temperatures: /cam0..5/temperature
+  imu: /imu0
+notes:
+  - This is not a conventional colour camera. Do not open it with plain V4L2
+    or treat the stream as a normal 2560x1024 colour image.
+  - Six-image firmware exposes /cam0..5 with cam2..cam5 at half width/height
+    (640x512); it is outside the frozen four-camera contract.
+  - Message stamps come from the camera device (image_timestamp /
+    imu_timestamp). Mainboard triggering is planned but not yet verified;
+    hardware currently free-runs (docs/04 §4.3, 2026-11-13).

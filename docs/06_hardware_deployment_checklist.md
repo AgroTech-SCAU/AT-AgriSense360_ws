@@ -16,7 +16,16 @@
 | `70-agrisense-serial.rules` | `70-handheld-scanner-serial.rules` |
 | 仓库 `AT-AgriSense360_ws` | 仓库 `Handheld-scanner` |
 
-话题名、frame 名、四份契约 YAML 和 `msg` 定义不变，已有 bag 与外部脚本不受影响。
+本分支的接口变化（依赖旧话题/帧名的外部脚本需要同步修改）：
+
+- 雷达：输出由 `/livox/lidar`（CustomMsg）+ `/livox/imu` 改为
+  `/sensors/lidar/points`（PointCloud2）+ `/sensors/lidar/imu`；
+- 相机：header frame 由 `camN` / `imu0` 改为 `camera_N_link` /
+  `camera_imu_link`，输出话题改为 `/sensors/camera/...`；
+- 契约 YAML 现为 5 份：`topic_contract`、`frame_contract`、`lio_contract`
+  以及两份 `adapter_contract`（lidar、camera）；
+- 已删除 `handheld_scanner_lidar/config/interface_contract.yaml` 与
+  `launch/mid360s.launch.py`。
 
 ## 2. 串口别名部署
 
@@ -61,7 +70,7 @@ ls -l /dev/handheld-scanner-*
 |---|---|---|---|
 | 扫描板（TimeSyncV2） | USB（数据线） | `0483:5740` → `ttyACM*` → `/dev/handheld-scanner-timesync` | v0.2 可选，验证时间同步时必接 |
 | GNSS 接收机 | USB | `152a:8231` → `/dev/handheld-scanner-gnss`(-aux) | v0.5+ |
-| MID360S 雷达 | 网口 UDP | 不出 tty，话题 `/livox/lidar`、`/livox/imu` | v0.2 必需 |
+| MID360S 雷达 | 网口 UDP | 不出 tty，适配包通过驱动参数直接发布 `/sensors/lidar/points`、`/sensors/lidar/imu`（覆盖 vendor 默认 `/livox/*`） | v0.2 必需 |
 | MF287 四目相机 | USB 视频 | 出 `/dev/video*`，不是 `ttyACM` | v0.3 |
 
 接入顺序：先插扫描板确认别名，再插 GNSS；雷达走网络，最后核对 IP 与 UDP 端口。

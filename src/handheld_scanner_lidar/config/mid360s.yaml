@@ -1,0 +1,19 @@
+# Livox MID360S — values for the currently used configuration.
+#
+# Per-device data (serial number, lidar/host IPv4, UDP ports) is deliberately
+# absent: it lives in the vendor JSON passed to launch as `device_config`.
+# Do not commit a real JSON path or a real device IP here.
+/**:
+  ros__parameters:
+    # 0 = sensor_msgs/PointCloud2, 1 = livox_ros_driver2 CustomMsg.
+    # The stable interface (/sensors/lidar/points) requires PointCloud2.
+    # FAST-LIO2 consumes it with `preprocess.lidar_type: 4` (MID360 handler).
+    # The per-point `timestamp` field is published but not read by FAST-LIO2.
+    xfer_format: 0
+    multi_topic: 0
+    data_src: 0
+    publish_freq: 10.0
+    output_data_type: 0
+    frame_id: lidar_link
+    # Overridden by launch `device_config`. Empty means "not configured yet".
+    user_config_path: ""

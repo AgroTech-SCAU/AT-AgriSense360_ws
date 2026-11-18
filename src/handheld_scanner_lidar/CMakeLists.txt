@@ -3,6 +3,11 @@ project(handheld_scanner_lidar)
 
 find_package(ament_cmake REQUIRED)
 
-install(DIRECTORY launch config DESTINATION share/${PROJECT_NAME})
+install(DIRECTORY launch config
+  DESTINATION share/${PROJECT_NAME}
+  FILES_MATCHING
+  PATTERN "*.py"
+  PATTERN "*.yaml"
+)
 
 ament_package()
