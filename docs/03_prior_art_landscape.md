@@ -1,4 +1,4 @@
-# AgriSense-360 相关成果全网检索报告
+# Handheld-scanner 相关成果全网检索报告
 
 检索日期：2026-09-21  
 检索范围：农业/果园研究、通用多传感器 SLAM、ROS 2 工程、开源采集平台、公开数据集、商用移动测量设备  
@@ -14,7 +14,7 @@
 - 完整公开机械、电气、同步、标定和 ROS 2 软件；
 - 同时支持原始数据集生产、彩色三维建图、长期全局定位和 Nav2 导航。
 
-最接近 AgriSense-360 的已有成果分别是：
+最接近 Handheld-scanner 的已有成果分别是：
 
 - **硬件与 LIVO 开源复现**：HKU MaRS 的 LIV-Eye；
 - **农业全模态数据设计**：CitrusFarm、TreeScope；
@@ -24,9 +24,9 @@
 - **商用一体化形态**：CHCNAV RS10、GreenValley LiGrip O2、XGRIDS Lixel L2 Pro；
 - **ROS 2 原生三维建图候选**：GLIM、RTAB-Map；
 - **全传感器融合研究框架**：MINS；
-- **AgriSense 当前算法近邻**：FAST-LIO2、FAST-LIVO2、R3LIVE、LIO-SAM/LVI-SAM。
+- **本项目当前算法近邻**：FAST-LIO2、FAST-LIVO2、R3LIVE、LIO-SAM/LVI-SAM。
 
-因此，AgriSense-360 的现实创新点不应简单描述为“把多种传感器装在一起”，而应放在：低成本开放硬件、四目环视、ROS 2 原生数据工程、农业长期/跨季节地图、GNSS 退化管理、可复现实验和采集/导航双用途。
+因此，Handheld-scanner 的现实创新点不应简单描述为“把多种传感器装在一起”，而应放在：低成本开放硬件、四目环视、ROS 2 原生数据工程、农业长期/跨季节地图、GNSS 退化管理、可复现实验和采集/导航双用途。
 
 ## 2. 高相关度成果速览
 
@@ -41,7 +41,7 @@
 | LiGrip O2 | 是 | 3全景+2 VSLAM | 内置 | RTK/PPK | 林业适用 | 封闭 | 商用闭源 | 多相机、多工作形态近邻 |
 | Lixel L2 Pro | 是 | 视觉着色/辅助 | 内置 | RTK/PPK | 非专用 | 封闭 | 商用闭源 | SLAM+视觉+IMU+RTK集成近邻 |
 
-“ROS 2”一栏只表示公开实现层面的支持情况，不代表其在 AgriSense 指定硬件上已经验证。
+“ROS 2”一栏只表示公开实现层面的支持情况，不代表其在本项目指定硬件上已经验证。
 
 ## 3. 农业与果园相关学术成果
 
@@ -50,21 +50,21 @@
 - 来源：[Agronomy 论文](https://www.mdpi.com/2073-4395/14/11/2541)
 - 核心技术：使用 LIO-SAM 构建果园栅格地图；RTK-GNSS 提供全局初始位置和航向；GNSS/IMU 采用 Kalman 滤波；全局规划用改进 A*，动态避障用 DWA。
 - 论文报告：全局定位误差约 2.215 cm，导航平均横向偏差约 4.16 cm，但这些结果受其 RTK、场地、车辆和测试方案限定。
-- 相似点：覆盖 AgriSense 模式 B 与 D，证明“局部 LIO + RTK 全局锚定 + 2D 导航地图”是果园可行路线。
+- 相似点：覆盖本项目模式 B 与 D，证明“局部 LIO + RTK 全局锚定 + 2D 导航地图”是果园可行路线。
 - 差异点：没有视觉/彩色点云、四目采集和开放传感器头；核心是整车导航而非通用采集平台。
 
 ### 3.2 Map-constrained LiDAR-IMU Localization for Orchard Robot Navigation（2026）
 
 - 来源：[Computers and Electronics in Agriculture](https://www.sciencedirect.com/science/article/pii/S0168169926008732)
 - 核心技术：预先建立 3D 果园点云；将其转换为轻量 2D 拓扑地图做规划，同时保留 3D 地图做 LiDAR-IMU 约束定位；GNSS/IMU 只用于启动全局锚定。
-- 相似点：非常接近 AgriSense “GNSS受遮挡时继续定位”和“3D采集地图服务后续导航”的目标。
+- 相似点：非常接近本项目“GNSS受遮挡时继续定位”和“3D采集地图服务后续导航”的目标。
 - 差异点：没有视觉融合；依赖先验地图，重点是多台履带式农业平台复用。
 
 ### 3.3 GNSS and LiDAR Integrated Navigation with Intermittent GNSS Dropout（2024）
 
 - 来源：[Applied Sciences 论文](https://www.mdpi.com/2076-3417/14/8/3231)
 - 核心技术：RTK-GNSS/INS 与 LiDAR 结合，在果园 GNSS 间歇失效时用 LiDAR 相对定位维持导航。
-- 相似点：对应 AgriSense 的 GNSS 退化/重锁管理。
+- 相似点：对应本项目的 GNSS 退化/重锁管理。
 - 差异点：没有相机与三维彩色地图，重点是导航连续性。
 
 ### 3.4 Autonomous Navigation in Degraded Orchard Environments（2026）
@@ -79,14 +79,14 @@
 - 来源：[官方 GitHub](https://github.com/UCR-Robotics/Citrus-Farm-Dataset)、[论文预印本](https://arxiv.org/abs/2309.15332)
 - 核心内容：柑橘园移动机器人数据集，包含双目 RGB、深度、单色、近红外、热成像、轮速、LiDAR、IMU 和 GPS-RTK；7段序列、约7.5 km、1.7 h、约1.3 TB。
 - 工程价值：公开多相机、Camera-IMU、LiDAR-Camera、LiDAR-GPS、base_link-LiDAR 等标定资料和原始标定数据。
-- 相似点：传感器模态、农业场景、数据规模和标定链路都高度接近 AgriSense 模式 A。
+- 相似点：传感器模态、农业场景、数据规模和标定链路都高度接近本项目模式 A。
 - 差异点：目标是数据集而非可复制的一体化硬件；相机并非四目鱼眼，软件体系主要是 ROS1 bag。
 
 ### 3.6 TreeScope（森林与果园树木 LiDAR 数据集）
 
 - 来源：[项目主页](https://treescope.org/)、[数据说明](https://treescope.org/data_overview/)
 - 核心内容：移动平台和 UAV 的原始 LiDAR、IMU、GPS、RGB-D、热成像数据，并提供树干语义标签、直径真值、Faster-LIO处理轨迹与点云。
-- 相似点：面向树木环境的几何建模和语义数据生产，与 AgriSense 的果园数字地图/AI数据采集高度相关。
+- 相似点：面向树木环境的几何建模和语义数据生产，与本项目的果园数字地图/AI数据采集高度相关。
 - 差异点：重点是树木分割与测量，不是通用导航设备。
 
 ### 3.7 HORTO-3DLM（2024）
@@ -107,14 +107,14 @@
 
 - 来源：[论文](https://arxiv.org/abs/2507.12093)、[代码仓库](https://github.com/WUR-ABE/orchards-semantic-slam)
 - 核心技术：检测并重识别树干，把单株树作为语义地标，通过因子图融合 GPS、里程计和树干观测，生成轻量、可长期使用的果园地图。
-- 相似点：指出纯几何点云并不是果园长期定位的最终形态；AgriSense 可在三维地图上进一步构建“树级语义地图”。
+- 相似点：指出纯几何点云并不是果园长期定位的最终形态；本项目可在三维地图上进一步构建“树级语义地图”。
 - 差异点：当前开放代码是上层因子图工具，不是完整实时传感器融合栈。
 
 ### 3.10 SLOAM（2020）
 
 - 来源：[论文](https://arxiv.org/abs/1912.12726)、[官方代码](https://github.com/KumarRobotics/sloam)
 - 核心技术：LiDAR 点云语义分割、树木实例提取、树干/冠层模型与机器人位姿联合优化，可输出林木位置和直径。
-- 相似点：非常适合作为 AgriSense 果树结构提取、果园资产地图和跨季节地标的后处理模块。
+- 相似点：非常适合作为本项目果树结构提取、果园资产地图和跨季节地标的后处理模块。
 - 差异点：依赖另一个里程计提供初值，ROS1为主，不解决GNSS/视觉/同步硬件。
 
 ### 3.11 AgriGS-SLAM（2026）
@@ -137,7 +137,7 @@
 
 - 来源：[论文](https://arxiv.org/abs/2107.06829)、[官方代码](https://github.com/hku-mars/FAST_LIO)
 - 技术：原始点直接 scan-to-map，迭代误差状态 Kalman 滤波，增量 ikd-Tree；适合 Livox 非重复扫描雷达。
-- 可用性：是 AgriSense 模式 B 的高匹配基线；官方主线长期以 ROS1 为核心，ROS2主要依赖社区移植。
+- 可用性：是本项目模式 B 的高匹配基线；官方主线长期以 ROS1 为核心，ROS2主要依赖社区移植。
 - 局限：本身没有视觉、GNSS全局约束和完善回环，长期地图仍需上层后端。
 
 ### 4.2 LIO-SAM
@@ -151,21 +151,21 @@
 
 - 来源：[官方代码](https://github.com/hku-mars/FAST-LIVO2)、[ROS2社区移植](https://github.com/U-AMC/FAST-LIVO2-ROS2)
 - 技术：直接 LiDAR-惯性-视觉紧耦合里程计，利用点云几何和图像光度约束，支持鱼眼 equidistant 相机模型，可生成彩色地图。
-- 相似点：对应 AgriSense 模式 C，是主算法候选。
+- 相似点：对应本项目模式 C，是主算法候选。
 - 差异/风险：上游主线以 ROS1 为主，通常消费一路图像；四目紧耦合需要二次开发，ROS2移植需要自行维护。
 
 ### 4.4 R3LIVE / R3LIVE++
 
 - 来源：[官方代码](https://github.com/hku-mars/r3live)、[R3LIVE++论文](https://arxiv.org/abs/2209.03666)
 - 技术：FAST-LIO 构建几何地图，视觉-惯性子系统优化纹理/辐射信息，输出高质量彩色点云和纹理模型。
-- 相似点：适合作为 AgriSense 彩色三维地图的离线质量对照。
+- 相似点：适合作为本项目彩色三维地图的离线质量对照。
 - 差异/风险：ROS1、计算量较高；仓库明确限制个人/学术免费使用，商业化需要单独处理授权。
 
 ### 4.5 LVI-SAM
 
 - 来源：[官方代码](https://github.com/TixiaoShan/LVI-SAM)
 - 技术：把 LIO-SAM 和 VINS-Mono 在系统层紧耦合，传感器套件本身包含 LiDAR、相机、IMU 和 GPS。
-- 相似点：从系统架构上覆盖 AgriSense 四类传感器。
+- 相似点：从系统架构上覆盖本项目四类传感器。
 - 差异/风险：ROS1、依赖较旧，仓库TODO仍提到三类因子联合优化和稳定性问题；更适合研究对照而非首选工程基线。
 
 ### 4.6 GLIM
@@ -179,21 +179,21 @@
 
 - 来源：[官方代码](https://github.com/rpng/MINS)
 - 技术：统一融合 IMU、相机、LiDAR、GPS/GNSS 和轮速，支持在线标定、仿真和评估；仓库提供 ROS2 构建和运行入口。
-- 相似点：传感器集合与 AgriSense 几乎完全一致，是研究“统一多源滤波”和在线标定的重要参考。
+- 相似点：传感器集合与本项目几乎完全一致，是研究“统一多源滤波”和在线标定的重要参考。
 - 差异/风险：主要测试环境仍是 Ubuntu 18/20 与对应ROS版本；作为研究框架，配置与实机适配成本高，不直接生成产品级彩色地图。
 
 ### 4.8 RTAB-Map ROS2
 
 - 来源：[ROS2仓库](https://github.com/introlab/rtabmap_ros)、[ROS2 launch接口](https://github.com/introlab/rtabmap_ros/blob/ros2/rtabmap_launch/launch/rtabmap.launch.py)
 - 技术：视觉/立体/RGB-D/3D LiDAR里程计、图优化、回环、持久化数据库、GPS先验、IMU重力约束及Nav2示例；ROS2包成熟。
-- 相似点：适合作为 AgriSense 的全局回环、地图数据库、多会话重定位和Nav2连接层。
+- 相似点：适合作为本项目的全局回环、地图数据库、多会话重定位和Nav2连接层。
 - 差异：不是专门的 Livox LIO/LIVO 紧耦合算法；多传感器同步与参数配置仍复杂。
 
 ### 4.9 robot_localization
 
 - 来源：[官方代码与文档](https://github.com/cra-ros-pkg/robot_localization)、[GPS融合说明](https://github.com/cra-ros-pkg/robot_localization/blob/rolling-devel/doc/integrating_gps.rst)
 - 技术：EKF/UKF 与 `navsat_transform_node`，推荐用一个连续的 `odom` 滤波器服务局部控制，另一个融合 GNSS 的 `map` 滤波器提供全局位置。
-- 相似点：适合 AgriSense 第一版模式 D，工程简单、ROS2原生。
+- 相似点：适合本项目第一版模式 D，工程简单、ROS2原生。
 - 局限：属于松耦合状态融合，不会自动校正 LiDAR 地图内部形变，也不能替代回环/位姿图。
 
 ### 4.10 Graph-MSF
@@ -201,13 +201,13 @@
 - 来源：[官方代码](https://github.com/leggedrobotics/graph_msf)
 - 技术：基于 GTSAM 的图优化多源融合框架，可融合 IMU 与相对/绝对测量，并包含GNSS与里程计接口。
 - 相似点：适合把 FAST-LIO/GLIM 里程计与 RTK-GNSS 结合，构建 `map->odom` 全局修正。
-- 差异/风险：仓库明确仍在发展中，需要为 AgriSense 编写专用集成层和质量门控。
+- 差异/风险：仓库明确仍在发展中，需要为本项目编写专用集成层和质量门控。
 
 ### 4.11 Grid Map / Elevation Mapping
 
 - 来源：[grid_map](https://github.com/ANYbotics/grid_map)
 - 技术：多层2.5D栅格，可在 PointCloud2、GridMap 和 OccupancyGrid 间转换，常用于高程、坡度、粗糙度和可通行性表达。
-- 相似点：是把 AgriSense 三维果园点云转换为 Nav2 可用地形/障碍地图的关键中间层。
+- 相似点：是把本项目三维果园点云转换为 Nav2 可用地形/障碍地图的关键中间层。
 - 差异：不负责SLAM或定位，只负责地图表达和处理。
 
 ## 5. 高相似度开源硬件与数据平台
@@ -218,8 +218,8 @@
 - 硬件：Livox Mid-360、海康工业相机、镜头、LiDAR-Camera同步器、电池；目标成本约5000元。
 - 开放内容：BOM、SolidWorks CAD、接线、相机/Livox驱动、LiDAR-Camera联合标定和 FAST-LIVO2 Mid-360 配置；声称支持ROS1/ROS2与Docker。
 - 同步方式：相机配置成触发模式，通过硬件同步器/STM32使LiDAR与相机物理采样时间一致。
-- 与 AgriSense 的相似点：同样是小型、低成本、可手持/上机器人、Mid-360、LIVO、STM32同步的传感器头，是最值得直接复用的机械/同步/标定参考。
-- 差异点：单相机、无GNSS/RTK、非农业定制；AgriSense四目模组是否接受外触发仍需实物证明。
+- 与本项目的相似点：同样是小型、低成本、可手持/上机器人、Mid-360、LIVO、STM32同步的传感器头，是最值得直接复用的机械/同步/标定参考。
+- 差异点：单相机、无GNSS/RTK、非农业定制；本项目四目模组是否接受外触发仍需实物证明。
 
 ### 5.2 M2DGR
 
@@ -227,7 +227,7 @@
 - 传感器：6个环视鱼眼、1个向上鱼眼、普通彩色相机、事件相机、红外、32线LiDAR、多IMU、普通GNSS和RTK GNSS/INS。
 - 核心价值：多鱼眼环视和全模态传感器的标定、同步、数据组织与SLAM基准。
 - 相似点：是目前检索到与“多鱼眼 + LiDAR + IMU + GNSS”组合最接近的公开平台。
-- 差异点：城市/室内地面机器人数据集，体量和成本高于 AgriSense，未针对果园。
+- 差异点：城市/室内地面机器人数据集，体量和成本高于本项目，未针对果园。
 
 ### 5.3 MARS-LVIG
 
@@ -240,7 +240,7 @@
 
 - 来源：[官方项目页](https://rtk-slam-dataset.github.io/)
 - 内容：同步 LiDAR、相机、IMU 和 RTK 数据；提供 ROS1、ROS2 和 EuRoC 格式、标定与评估脚本；序列包含大量 RTK 退化区段和控制点。
-- 相似点：可用来验证 AgriSense 的 ROS2 数据格式、相机时间偏移、绝对精度评估和GNSS失锁处理。
+- 相似点：可用来验证本项目的 ROS2 数据格式、相机时间偏移、绝对精度评估和GNSS失锁处理。
 - 差异点：非农业，传感器型号不同。
 
 ### 5.5 GEODE
@@ -257,7 +257,7 @@
 - 来源：[官方产品页](https://geospatial.chcnav.com/products/chcnav-RS10)
 - 组成：16/32线LiDAR、3×5MP相机、GNSS RTK、视觉SLAM与板载实时处理；支持手持室内外测绘。
 - 厂商指标：相对精度小于1 cm、绝对精度小于5 cm，IP64、热插拔电池。
-- 相似点：功能层面最接近 AgriSense “LiDAR+视觉+IMU/姿态+RTK、手持、实时地理点云”。
+- 相似点：功能层面最接近本项目“LiDAR+视觉+IMU/姿态+RTK、手持、实时地理点云”。
 - 差异点：测绘级闭源产品，算法与原始时间同步接口不可控，不是ROS2开发平台，也不是农业专用。
 
 ### 6.2 GreenValley LiGrip O2
@@ -265,8 +265,8 @@
 - 来源：[官方产品页](https://www.greenvalleyintl.com/LiGripO2)、[官方规格](https://www.greenvalleyintl.com/gvi/web/us/file/EN-LiGrip-O2.pdf)
 - 组成：LiDAR、3个12MP全景相机、2个VSLAM相机、GNSS天线、内置IMU与SSD；支持手持、背包、车载、杆载和机载。
 - 技术路线：RTK-SLAM、PPK-SLAM、MLF-SLAM和纯SLAM多模式；面向林业、隧道、测绘等。
-- 相似点：多相机覆盖、GNSS退化模式、多安装形态和长时数据采集与 AgriSense 产品设想高度一致。
-- 差异点：闭源、价格和算力等级更高；视觉相机的角色被区分为着色与VSLAM，而 AgriSense 当前四目角色尚未冻结。
+- 相似点：多相机覆盖、GNSS退化模式、多安装形态和长时数据采集与本项目产品设想高度一致。
+- 差异点：闭源、价格和算力等级更高；视觉相机的角色被区分为着色与VSLAM，而本项目当前四目角色尚未冻结。
 
 ### 6.3 XGRIDS Lixel L2 Pro
 
@@ -281,7 +281,7 @@
 - 来源：[官方产品页](https://www.stonex.it/product/x120go-v2-slam-laser-scanner/)
 - 组成：16/32线旋转LiDAR、2个相机、内置GNSS、IMU/SLAM，可增加RTK模块；支持手持、背包、车载和无人机。
 - 相似点：机械形态、彩色点云、GNSS辅助和多平台安装都可作为工业设计参考。
-- 差异点：闭源测绘设备，视觉覆盖和数据开放性不如AgriSense计划。
+- 差异点：闭源测绘设备，视觉覆盖和数据开放性不如本项目计划。
 
 ### 6.5 DJI Zenmuse L2
 
@@ -333,7 +333,7 @@ GNSS/RTK + 回环/先验地图 ─► map->odom（全局修正）
 8. **缺少统一农业评测**：现有农业数据集各自传感器和真值不同，尚无专门针对低成本四目+Livox+RTK平台的跨季节、跨果园ROS2基准。
 9. **商业授权风险**：FAST-LIVO2、R3LIVE和部分驱动采用GPL或附带商业使用限制，产品化前必须单独审查。
 
-## 9. 对 AgriSense-360 的定位建议
+## 9. 对 Handheld-scanner 的定位建议
 
 ### 9.1 第一阶段不要宣称发明新的融合算法
 
@@ -386,11 +386,11 @@ GNSS/RTK + 回环/先验地图 ─► map->odom（全局修正）
 - G60作为RTK与PPS时间源；
 - CyperStereo外部触发与硬件时间戳；
 - Intel N150同时执行四目转换、录包、LIVO与可视化；
-- 任何论文或商用品的厘米级指标迁移到AgriSense硬件。
+- 任何论文或商用品的厘米级指标迁移到本项目硬件。
 
 ## 11. 最终判断
 
-AgriSense-360 的方向具有明确的研究基础和市场先例，不属于“无人做过”的方向；但公开研究、开源硬件和商用品之间存在明显断层：
+Handheld-scanner 的方向具有明确的研究基础和市场先例，不属于“无人做过”的方向；但公开研究、开源硬件和商用品之间存在明显断层：
 
 - 学术算法强，但常停留在ROS1、单相机或单一任务；
 - 农业数据集丰富，但很少提供可复制的低成本整机；

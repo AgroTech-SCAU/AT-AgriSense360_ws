@@ -14,7 +14,7 @@ Pinned evaluation dependencies are listed in the root `dependencies.repos`:
 
 1. Livox-SDK2 `v1.3.1` commit for local, non-system installation;
 2. `livox_ros_driver2` `1.2.6`, which includes MID360S support;
-3. `Ericsii/FAST_LIO_ROS2` at an immutable commit, with an AgriSense-360
+3. `Ericsii/FAST_LIO_ROS2` at an immutable commit, with a Handheld-scanner
    frame-name patch applied after import;
 4. `Cyperstereo/CyperstereoSDK` at an immutable commit. It is the user-space
    V4L2/UVC layer for the MF287 four-camera module: the 2560x1024 YUYV stream
@@ -44,7 +44,7 @@ Pinned evaluation dependencies are listed in the root `dependencies.repos`:
   binaries.
 
 `tools/build_workspace.sh` enforces this boundary with an explicit package
-allow-list (`agrisense360_*`, `scanner_control_driver`, `livox_ros_driver2`,
+allow-list (`handheld_scanner_*`, `livox_ros_driver2`,
 `fast_lio`, `data_cap`).  It scans only `src/` and never builds the camera
 SDK's ROS 1, sample or tool packages:
 

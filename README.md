@@ -1,4 +1,4 @@
-# AgriSense-360
+# Handheld-scanner
 
 农业机器人多源融合三维采集与定位平台，目标是在 ROS 2 Humble 上完成 LiDAR、四目鱼眼相机、IMU 与 GNSS 的同步采集、三维建图和全局定位。
 
@@ -11,25 +11,27 @@
 - [相关成果全网检索报告](docs/03_prior_art_landscape.md)
 - [高集成整机研发基准（当前有效）](docs/04_integrated_scanner_rnd_baseline.md)
 - [全项目研发流程（当前执行计划）](docs/05_development_roadmap.md)
+- [硬件部署清单](docs/06_hardware_deployment_checklist.md)
 
 管理人确认的高集成整机、统一STM32时间主干、独立BMS安全域与Scanner Mainboard路线，以`04_integrated_scanner_rnd_baseline.md`版本0.4为当前最高优先级研发基准。硬件型号与接口未核验前可以通过开发板、示波器和软件完成EVT-0验证，但开发板拼接不得作为EVT-1首版整机交付，也不得直接进入结构开模或产品式PCB定板。
 
 ## 工作区结构
 
 ```text
-AT-AgriSense360_ws/
-├── docs/                         # 项目基线、调研与研发流程
+Handheld-scanner/
+├── docs/                             # 项目基线、调研与研发流程
 ├── src/
-│   ├── agrisense360_interfaces/ # 整机时间与电源状态消息
-│   ├── agrisense360_description/# 最终坐标系与标定契约
-│   ├── agrisense360_lidar/      # MID360S驱动边界
-│   ├── agrisense360_mapping/    # FAST-LIO2选型与输出契约
-│   ├── agrisense360_bringup/    # 唯一整机启动入口
-│   └── vendor/                  # 固定提交的第三方依赖
-├── tools/                           # 可重复构建脚本
-├── build/                        # colcon生成，忽略
-├── install/                      # colcon生成，忽略
-└── log/                          # colcon生成，忽略
+│   ├── handheld_scanner_interfaces/  # 整机时间与电源状态消息
+│   ├── handheld_scanner_description/ # 最终坐标系与标定契约
+│   ├── handheld_scanner_lidar/       # MID360S驱动边界
+│   ├── handheld_scanner_mapping/     # FAST-LIO2选型与输出契约
+│   ├── handheld_scanner_bringup/     # 唯一整机启动入口
+│   ├── handheld_scanner_timesync/    # 时间同步板只读状态轮询
+│   └── vendor/                       # 固定提交的第三方依赖
+├── tools/                            # 可重复构建脚本
+├── build/                            # colcon生成，忽略
+├── install/                          # colcon生成，忽略
+└── log/                              # colcon生成，忽略
 ```
 
 ## 当前迭代
@@ -55,11 +57,11 @@ bag=$(find datasets/public/driving_slam_mid360/extracted -name metadata.yaml -pr
 ./tools/run_offline_lio.sh "$bag"
 ```
 
-公开数据配置仅用于算法链路验证，不是AgriSense-360实机外参。
+公开数据配置仅用于算法链路验证，不是Handheld-scanner实机外参。
 
 当前不提交未核验的Livox JSON或假外参。安装并锁定第三方驱动后，整机仍从同一入口启动：
 
 ```bash
-ros2 launch agrisense360_bringup agrisense360.launch.py \
+ros2 launch handheld_scanner_bringup handheld_scanner.launch.py \
   enable_lidar:=true livox_config:=/absolute/path/to/verified_mid360s.json
 ```

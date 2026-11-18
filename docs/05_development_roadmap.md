@@ -1,4 +1,4 @@
-# AgriSense-360 全项目研发流程
+# Handheld-scanner 全项目研发流程
 
 版本：0.2  
 日期：2026-11-16  
@@ -55,7 +55,7 @@
 已完成：
 
 - TimeSyncV2 只读轮询节点与 `TimeSyncStatus`；
-- `/dev/agrisense-*` 稳定别名规则；
+- `/dev/handheld-scanner-*` 稳定别名规则；
 - GNSS NMEA 链路、LOCAL/GNSS 模式枚举；
 - CAM1–CAM4 Trigger 脉冲输出。
 
@@ -104,8 +104,8 @@
 
 v0.2只启用MID360S和内置IMU，是最终整机软件架构的第一个可验证运行配置，不是另做一套独立雷达系统。实施期间遵守：
 
-- 只维护一个`AT-AgriSense360_ws`，不创建独立的雷达工作空间；
-- 从v0.2开始使用最终整机的`agrisense360_*`包名、话题命名、TF和统一启动入口；
+- 只维护一个`Handheld-scanner`，不创建独立的雷达工作空间；
+- 从v0.2开始使用最终整机的`handheld_scanner_*`包名、话题命名、TF和统一启动入口；
 - MID360S、MF287、GNSS和Scanner Mainboard按同一设备清单管理，后续只增加驱动和启用配置；
 - 第三方驱动通过适配层接入，不让其话题和参数直接扩散到全部业务代码；
 - v0.2输出的网络、时间戳、诊断和录包规则继续沿用到多传感器版本；
@@ -184,7 +184,7 @@ ROS 2工作区
 ### 4.3 当前进展
 
 - 工作空间、固定提交的依赖、构建白名单和离线回放链路已就绪；
-- `scanner_control_driver` 已提供同步板只读状态；
+- `handheld_scanner_timesync` 已提供同步板只读状态；
 - 相机 SDK 仅构建 `ros2/src/data_cap`，标定工具链以容器方式固定；
 - 待完成：实机 MID360S 网络/固件核验、实机建图、MF287 外触发固件。
 

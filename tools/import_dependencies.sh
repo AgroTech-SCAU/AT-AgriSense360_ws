@@ -22,7 +22,7 @@ git -C "${fast_lio_dir}" submodule update --init --recursive
 if git -C "${fast_lio_dir}" apply --check "${fast_lio_patch}"; then
   git -C "${fast_lio_dir}" apply "${fast_lio_patch}"
 elif git -C "${fast_lio_dir}" apply --reverse --check "${fast_lio_patch}"; then
-  echo "AgriSense-360 FAST-LIO2 frame patch is already applied."
+  echo "Handheld-scanner FAST-LIO2 frame patch is already applied."
 else
   echo "FAST-LIO2 frame patch does not match the pinned source." >&2
   exit 1

@@ -22,7 +22,7 @@ source /opt/ros/humble/setup.bash
 source "${workspace_dir}/install/setup.bash"
 set -u
 
-ros2 launch agrisense360_mapping fast_lio2.launch.py \
+ros2 launch handheld_scanner_mapping fast_lio2.launch.py \
   use_sim_time:=true map_file_path:="${output_pcd}" &
 mapping_pid=$!
 

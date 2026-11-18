@@ -4,7 +4,7 @@ set -euo pipefail
 workspace_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 kalibr_src="${workspace_dir}/third_party/sources/kalibr"
 dockerfile="${workspace_dir}/tools/calibration/Dockerfile"
-image="${KALIBR_IMAGE:-agrisense360/kalibr:1f60227}"
+image="${KALIBR_IMAGE:-handheld_scanner/kalibr:1f60227}"
 
 if [[ ! -f "${kalibr_src}/aslam_offline_calibration/kalibr/package.xml" ]]; then
   echo "Kalibr source not found at ${kalibr_src}." >&2
