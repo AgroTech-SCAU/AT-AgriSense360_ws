@@ -11,13 +11,14 @@
 - [相关成果全网检索报告](docs/03_prior_art_landscape.md)
 - [高集成整机研发基准（当前有效）](docs/04_integrated_scanner_rnd_baseline.md)
 - [全项目研发流程（当前执行计划）](docs/05_development_roadmap.md)
+- [硬件部署清单](docs/06_hardware_deployment_checklist.md)
 
 管理人确认的高集成整机、统一STM32时间主干、独立BMS安全域与Scanner Mainboard路线，以`04_integrated_scanner_rnd_baseline.md`版本0.4为当前最高优先级研发基准。硬件型号与接口未核验前可以通过开发板、示波器和软件完成EVT-0验证，但开发板拼接不得作为EVT-1首版整机交付，也不得直接进入结构开模或产品式PCB定板。
 
 ## 工作区结构
 
 ```text
-Handheld-scanner_ws/
+Handheld-scanner/
 ├── docs/                             # 项目基线、调研与研发流程
 ├── src/
 │   ├── handheld_scanner_interfaces/  # 整机时间与电源状态消息
