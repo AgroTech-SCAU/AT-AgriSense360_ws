@@ -32,12 +32,12 @@ fi
 # samples under src/vendor.  Only ros2/src/data_cap belongs to the Humble
 # workspace, so use an explicit allow-list instead of scanning every package.
 workspace_packages=(
-  agrisense360_bringup
-  agrisense360_description
-  agrisense360_interfaces
-  agrisense360_lidar
-  agrisense360_mapping
-  scanner_control_driver
+  handheld_scanner_bringup
+  handheld_scanner_description
+  handheld_scanner_interfaces
+  handheld_scanner_lidar
+  handheld_scanner_mapping
+  handheld_scanner_timesync
   livox_ros_driver2
   fast_lio
   data_cap

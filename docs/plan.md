@@ -13,7 +13,7 @@
 
 ### 阶段一：方案设计
 
-- [x] 确定 AgriSense-360 总体技术路线
+- [x] 确定 Handheld-scanner 总体技术路线
 - [x] 建立 ROS 2 Humble 工作空间框架
 - [x] 建立传感器话题、坐标系与启动接口约定
 - [x] 冻结 `docs/01`–`04` 研发基线
@@ -22,7 +22,7 @@
 ### 阶段二：硬件同步
 
 - [x] TimeSyncV2 只读轮询节点与 `TimeSyncStatus`
-- [x] `/dev/agrisense-*` 稳定别名规则
+- [x] `/dev/handheld-scanner-*` 稳定别名规则
 - [x] GNSS NMEA 链路、LOCAL/GNSS 模式枚举
 - [x] CAM1–CAM4 Trigger 脉冲输出
 - [ ] MF287 外触发/slave 固件（需厂家提供）

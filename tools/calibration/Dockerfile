@@ -1,4 +1,4 @@
-# Kalibr (ROS 1 Noetic) for AgriSense-360 camera calibration.
+# Kalibr (ROS 1 Noetic) for Handheld-scanner camera calibration.
 #
 # Build context: third_party/sources/kalibr, pinned to upstream commit
 # 1f60227442d25e36365ef5f72cd80b9666d73467 (see dependencies.repos).

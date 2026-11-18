@@ -1,0 +1,24 @@
+# Handheld-scanner stable serial aliases.
+#
+# Install with:
+#   sudo cp 70-handheld-scanner-serial.rules /etc/udev/rules.d/
+#   sudo udevadm control --reload-rules
+#   sudo udevadm trigger --action=change --subsystem-match=tty
+#
+# Rule number 70 is intentional: it must run before systemd's
+# 73-seat-late.rules so TAG+="uaccess" is visible to the uaccess builtin.
+#
+# TimeSyncV2 mainboard (STM32 USB CDC).
+SUBSYSTEM=="tty", ATTRS{idVendor}=="0483", ATTRS{idProduct}=="5740", \
+  MODE="0660", GROUP="plugdev", TAG+="uaccess", \
+  ENV{ID_MM_DEVICE_IGNORE}="1", SYMLINK+="handheld-scanner-timesync"
+
+# Septentrio mosaic-G5 USB1: NMEA / command interface.
+SUBSYSTEM=="tty", ATTRS{idVendor}=="152a", ATTRS{idProduct}=="8231", \
+  ATTRS{bInterfaceNumber}=="00", MODE="0660", GROUP="plugdev", \
+  TAG+="uaccess", ENV{ID_MM_DEVICE_IGNORE}="1", SYMLINK+="handheld-scanner-gnss"
+
+# Septentrio mosaic-G5 USB2: SBF / debug interface.
+SUBSYSTEM=="tty", ATTRS{idVendor}=="152a", ATTRS{idProduct}=="8231", \
+  ATTRS{bInterfaceNumber}=="02", MODE="0660", GROUP="plugdev", \
+  TAG+="uaccess", ENV{ID_MM_DEVICE_IGNORE}="1", SYMLINK+="handheld-scanner-gnss-aux"
