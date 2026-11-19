@@ -15,24 +15,20 @@ def generate_launch_description():
     enable_mapping = LaunchConfiguration("enable_mapping")
     enable_control = LaunchConfiguration("enable_control")
     device_config = LaunchConfiguration("device_config")
+    mapping_config = LaunchConfiguration("mapping_config")
     control_port = LaunchConfiguration("control_port")
 
     lidar_launch = Path(
         get_package_share_directory("handheld_scanner_lidar")
     ) / "launch" / "lidar.launch.py"
-    mapping_launch = Path(
-        get_package_share_directory("handheld_scanner_mapping")
-    ) / "launch" / "fast_lio2.launch.py"
+    mapping_share = Path(get_package_share_directory("handheld_scanner_mapping"))
+    mapping_launch = mapping_share / "launch" / "fast_lio2.launch.py"
+    default_mapping_config = mapping_share / "config" / "mid360s_live.yaml"
     control_launch = Path(
         get_package_share_directory("handheld_scanner_timesync")
     ) / "launch" / "handheld_scanner_timesync.launch.py"
 
     return LaunchDescription([
-        DeclareLaunchArgument(
-            "profile",
-            default_value="lio",
-            description="Device profile. v0.2 defines the lio profile.",
-        ),
         DeclareLaunchArgument(
             "enable_lidar",
             default_value="false",
@@ -41,7 +37,12 @@ def generate_launch_description():
         DeclareLaunchArgument(
             "enable_mapping",
             default_value="false",
-            description="Enable only after a FAST-LIO2 ROS 2 implementation is pinned.",
+            description="Enable FAST-LIO2 with the live MID360S profile by default.",
+        ),
+        DeclareLaunchArgument(
+            "mapping_config",
+            default_value=str(default_mapping_config),
+            description="FAST-LIO2 parameter profile; default is the live MID360S profile.",
         ),
         DeclareLaunchArgument(
             "device_config",
@@ -68,7 +69,10 @@ def generate_launch_description():
         IncludeLaunchDescription(
             PythonLaunchDescriptionSource(str(mapping_launch)),
             condition=IfCondition(enable_mapping),
-            launch_arguments={"use_sim_time": "false"}.items(),
+            launch_arguments={
+                "use_sim_time": "false",
+                "config_file": mapping_config,
+            }.items(),
         ),
         IncludeLaunchDescription(
             PythonLaunchDescriptionSource(str(control_launch)),

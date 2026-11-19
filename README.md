@@ -65,5 +65,6 @@ bag=$(find datasets/public/driving_slam_mid360/extracted -name metadata.yaml -pr
 
 ```bash
 ros2 launch handheld_scanner_bringup handheld_scanner.launch.py \
-  enable_lidar:=true device_config:=/absolute/path/to/verified_mid360s.json
+  enable_lidar:=true enable_mapping:=true \
+  device_config:=/absolute/path/to/verified_mid360s.json
 ```
