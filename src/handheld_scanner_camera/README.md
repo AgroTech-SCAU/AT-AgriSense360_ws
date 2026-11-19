@@ -55,11 +55,12 @@ ros2 topic hz /sensors/camera/cam0/image_raw
 ros2 topic echo --once /sensors/camera/imu
 ```
 
-The adapter advertises six image and six temperature topics plus one IMU
-topic. On four-camera hardware cam4/cam5 are advertised but silent, so nine
-streams carry data: cam0..3 image, cam0..3 temperature and the IMU. The
-publishers are created before any frame arrives, so `ros2 topic list` shows
-them even without streaming.
+The adapter publishes four image and four temperature topics plus one IMU
+topic, all carried by the MF287 in four-camera mode. `publisher_count`
+follows `required_output.images.count`, so a two-camera module would publish
+only cam0/cam1 after its contract count is updated. Publishers are created
+before any frame arrives, so `ros2 topic list` shows them even without
+streaming.
 
 Run `./tools/check_adapters.sh` after building: it fails if the installed
 `data_cap` predates the output patch. Make sure the driver is not already
@@ -115,11 +116,10 @@ than vendor defaults. Three couplings remain for the next camera adaptation:
   `imu_topic` and `publisher_count`; without it the driver hardcodes
   `camN` / `imu0` and `/camN/...` topics.
 - No `CameraInfo` is published; calibration outputs are not wired yet.
-- The adapter asks for six publishers (`publisher_count: 6`). `/cam4` and
-  `/cam5` are advertised under the stable names but stay silent in four-camera
-  mode. Six-image firmware changes the layout:
-  cam2..cam5 become half-width/half-height (640x512) images, outside the
-  frozen contract.
+- `publisher_count` follows `required_output.images.count` (4 for MF287).
+- Six-image firmware outputs cam0..5 with cam2..cam5 at half width/height
+  (640x512). It needs a separate profile with count 6 and extended
+  frame/topic contracts.
 - Header stamps come from the camera device timebase, not the mainboard.
   Mainboard triggering and host sync remain unverified (see
   `handheld_scanner_timesync` and `docs/04_integrated_scanner_rnd_baseline.md`

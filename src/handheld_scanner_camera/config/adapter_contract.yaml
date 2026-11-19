@@ -61,8 +61,6 @@ adapter:
     temperatures: temperature_topic_template
     imu: imu_topic
     publisher_count: publisher_count
-  # The adapter asks for six publishers; four are part of the contract.
-  source_camera_count: 6
   # Vendor defaults, kept for reference.
   vendor_topics:
     images: /cam{index}/image_raw
@@ -82,13 +80,11 @@ adapter:
   assumptions:
     - data_cap already publishes sensor_msgs/Image and sensor_msgs/Imu; no
       message conversion is performed.
-    - The adapter passes publisher_count 6, so /cam4 and /cam5 are advertised
-      under the stable names even though they stay silent in four-camera mode.
-      Six-image firmware also publishes them, which is outside this frozen
-      four-camera contract.
+    - The adapter passes publisher_count taken from required_output.images.count,
+      so a two-camera module only needs a contract count change.
     - Six-image firmware changes the layout, not just the count; cam2..cam5
-      become half-width/half-height (640x512) images. That mode is outside the
-      frozen four-camera contract and needs its own profile.
+      become half-width/half-height (640x512) images. That mode needs a
+      separate profile with count 6 and extended frame/topic contracts.
     - Apart from the six parameters added by the patch (two frame ids, three
       topic templates and publisher_count), data_cap declares no ROS
       parameters, so mf287.yaml is a record rather than driver input.

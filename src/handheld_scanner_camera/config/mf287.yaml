@@ -11,7 +11,8 @@ interface: USB UVC, user-space V4L2 access through the vendor SDK
 raw_stream: 2560x1024 YUYV
 plane_layout: four 1280x1024 planes, byte-interleaved
 outputs:
-  images: /cam0..5/image_raw        # 4 and 5 stay silent in four-camera mode
+  # Driver capability; the adapter publishes required_output.images.count only.
+  images: /cam0..5/image_raw
   temperatures: /cam0..5/temperature
   imu: /imu0
 notes:

@@ -37,7 +37,7 @@ def generate_launch_description():
     driver_params[topic_params["images"]] = outputs["images"]["topic_template"]
     driver_params[topic_params["temperatures"]] = outputs["temperatures"]["topic_template"]
     driver_params[topic_params["imu"]] = outputs["imu"]["topic"]
-    driver_params[topic_params["publisher_count"]] = adapter["source_camera_count"]
+    driver_params[topic_params["publisher_count"]] = outputs["images"]["count"]
 
     return LaunchDescription([
         DeclareLaunchArgument(
