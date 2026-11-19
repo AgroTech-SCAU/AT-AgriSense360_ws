@@ -15,6 +15,25 @@
 
 管理人确认的高集成整机、统一STM32时间主干、独立BMS安全域与Scanner Mainboard路线，以`04_integrated_scanner_rnd_baseline.md`版本0.4为当前最高优先级研发基准。硬件型号与接口未核验前可以通过开发板、示波器和软件完成EVT-0验证，但开发板拼接不得作为EVT-1首版整机交付，也不得直接进入结构开模或产品式PCB定板。
 
+## 软硬件解耦
+
+传感器按“设备适配包 + 稳定接口契约”组织，上层只消费 `/sensors/...` 稳定话题，不直接依赖任何 vendor 驱动。
+
+| 层 | 归属 | 职责 |
+|---|---|---|
+| 设备适配包 | `handheld_scanner_lidar`、`handheld_scanner_camera`、`handheld_scanner_timesync` | 型号无关入口；启动驱动、注入参数、终结 vendor 话题 |
+| 接口契约 | 各包 `config/adapter_contract.yaml` | `required_output` 冻结话题/类型/字段/frame；`adapter` 段随型号替换 |
+| 型号配置 | 各包 `config/<model>.yaml` | 当前型号的实际参数 |
+| 实例数据 | `config/local/`（不入 Git） | 设备 IP、序列号、标定输出 |
+| 整机组合 | `handheld_scanner_bringup` | 只按开关组合设备，不感知型号 |
+
+替换硬件时按对应包 README 的 **Replacing the ...** 步骤操作；先看 **Decoupling boundaries**，确认哪些部分仍与型号绑定（点云字段布局、驱动参数化 patch、编码/时间戳、CameraInfo）。
+
+当前已验证的硬件：
+
+- 雷达：Livox MID360S → `/sensors/lidar/points`（PointCloud2）+ `/sensors/lidar/imu`，10 Hz；
+- 相机：CyperStereo MF287 四目 → `/sensors/camera/cam0..3/image_raw` + temperature + `/sensors/camera/imu`（外部触发模式）。
+
 ## 工作区结构
 
 ```text
@@ -43,9 +62,11 @@ Handheld-scanner/
 基础构建：
 
 ```bash
-./tools/build_workspace.sh
+./tools/build_workspace.sh          # 构建后自动执行 check_adapters.sh
 source install/setup.bash
 ```
+
+`build_workspace.sh` 会先确认 vendor patch 已应用，构建后校验已安装的驱动是否包含输出参数化，避免旧的 install 静默发布 vendor 话题。
 
 无实物雷达时的离线链路：
 
@@ -68,3 +89,14 @@ ros2 launch handheld_scanner_bringup handheld_scanner.launch.py \
   enable_lidar:=true enable_mapping:=true \
   device_config:=/absolute/path/to/verified_mid360s.json
 ```
+
+雷达和相机也可以单独测试，只依赖各自的 vendor 驱动：
+
+```bash
+ros2 launch handheld_scanner_lidar lidar.launch.py \
+  enabled:=true device_config:=/absolute/path/to/verified_mid360s.json
+
+ros2 launch handheld_scanner_camera camera.launch.py enabled:=true
+```
+
+单独测试的预期话题、验证命令和失败模式见各包的 README。
