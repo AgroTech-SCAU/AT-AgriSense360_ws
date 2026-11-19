@@ -89,6 +89,23 @@ LiDAR-inertial-visual pipeline. That consumer needs one image stream plus
 and the other streams are not its input. The four-stream contract above stays
 in place so the choice can be made without republishing the driver.
 
+## Decoupling boundaries
+
+Topics, message types and frames are set through driver parameters rather
+than vendor defaults. Three couplings remain for the next camera adaptation:
+
+- **Driver parameters.** The six parameters exist only through
+  `patches/CyperstereoSDK/0001-parameterize-outputs.patch`. A different SDK
+  needs an equivalent parameterisation (a new patch) or a relay inside this
+  package; do not put vendor topic names into the contract.
+- **Camera-specific data.** Image encoding, per-camera timestamps and the
+  six-image half-resolution layout are vendor/ISP specific. `required_output`
+  fixes the topic shape and frames, not these values; confirm them for each
+  model and keep unverified fields marked `UNCONFIRMED`.
+- **CameraInfo.** Still has no producer. Calibration output is a per-model
+  concern; a replacement camera must either provide intrinsics or the
+  adapter must add a publisher once calibration exists.
+
 ## Known gaps
 
 - Frames and topics rely on the project patch

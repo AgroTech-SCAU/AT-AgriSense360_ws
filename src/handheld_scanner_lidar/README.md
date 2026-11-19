@@ -83,6 +83,29 @@ not load.
 8. **Rollback** — keep the previous model's params file and driver pin so the
    old configuration can be restored without reverting this package.
 
+## Decoupling boundaries
+
+Topics, message types, frames and launch arguments are decoupled from the
+vendor. Three couplings remain and must be handled when adapting another
+LiDAR:
+
+- **Point layout.** `required_output` still describes the Livox
+  `LivoxPointXyzitl` layout (`x, y, z, intensity, tag, line, timestamp`).
+  FAST-LIO2's `lidar_type: 4` handler parses exactly that layout, so a
+  PointCloud2 with different fields is accepted by type checkers and then
+  parsed incorrectly. A non-Livox LiDAR must either publish the same fields
+  through a converter in this package, or come with a matching consumer
+  handler in mapping.
+- **Driver parameters.** `pointcloud_topic`, `imu_topic` and `imu_frame_id`
+  exist only through
+  `patches/livox_ros_driver2/0001-parameterize-outputs.patch`. A different
+  SDK needs an equivalent parameterisation (a new patch) or a relay inside
+  this package; do not move vendor names into the contract or edit the
+  launch file around it.
+- **IMU semantics.** Message type and frame are decoupled, but axes, units
+  and the LiDAR-to-IMU transform are not verified. A replacement IMU must be
+  validated against the same contract before consumers trust it.
+
 ## Not yet verified on hardware
 
 The fields listed under `verification_required` in the adapter contract:
