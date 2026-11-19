@@ -1,0 +1,108 @@
+schema_version: 1
+device: lidar
+
+# ── 1. Upstream requirements ────────────────────────────────────────────────
+# Frozen. These describe what the consumers (FAST-LIO2, diagnostics, bags)
+# actually parse. They must not change when the LiDAR model changes; only the
+# adapter section below is rewritten.
+required_output:
+  - name: points
+    topic: /sensors/lidar/points
+    type: sensor_msgs/msg/PointCloud2
+    frame_id: lidar_link
+    # Field-level requirement: FAST-LIO2's MID360 handler deserializes the
+    # LivoxPointXyzitl layout: x, y, z, intensity, tag, line. The driver also
+    # publishes a `timestamp` field (absolute device nanoseconds); the current
+    # consumer ignores it. A PointCloud2 with a different layout is accepted
+    # by type checkers and then parsed incorrectly.
+    fields: [x, y, z, intensity, tag, line, timestamp]
+    units: m
+    time:
+      header: device_time_ns        # Livox base_time, not host receive time
+      per_point: timestamp          # offset_time in ns relative to header base_time
+      host_sync: unverified         # no PTP/GNSS confirmation yet
+    qos: reliable                   # publisher is reliable; consumer uses SensorDataQoS
+  - name: imu
+    topic: /sensors/lidar/imu
+    type: sensor_msgs/msg/Imu
+    frame_id: lidar_imu_link
+    axes: ROS_REP_103
+    units: [m/s^2, rad/s]
+    time:
+      header: device_time_ns
+      host_sync: unverified
+    # FAST-LIO2 subscribes with the default (reliable) QoS; a best-effort
+    # publisher would be silently dropped.
+    qos: reliable
+
+# ── 2. Adapter for the current model ────────────────────────────────────────
+# Rewrite this section when the LiDAR changes. Keep `required_output` intact.
+adapter:
+  model: Livox MID360S
+  status: EVALUATION_CANDIDATE_PINNED
+  driver:
+    package: livox_ros_driver2
+    version: 1.2.6
+    commit: 13eb05e4e6dd7a765b934d0c5fd6236676a57b49
+    executable: livox_ros_driver2_node
+    node_name: mid360s_driver
+  params_file: mid360s.yaml
+  # Driver parameters that set the output topics directly; no remap is needed.
+  topic_params:
+    points: pointcloud_topic
+    imu: imu_topic
+  # Vendor defaults, kept for reference. multi_topic must stay 0.
+  vendor_topics:
+    points: /livox/lidar
+    imu: /livox/imu
+  # Driver parameter that receives `device_config` at launch time.
+  device_config_param: user_config_path
+  # Point-cloud frame parameter; launch value comes from required_output.
+  frame_param: frame_id
+  # Added by patches/livox_ros_driver2/0001-parameterize-outputs.patch.
+  imu_frame_param: imu_frame_id
+  # Values a profile must never override.
+  fixed_params:
+    xfer_format: 0
+    multi_topic: 0
+  strategy: driver_native_pointcloud2
+
+  steps:
+    - xfer_format: 0                     # PointCloud2 instead of CustomMsg
+    - pointcloud_topic: /sensors/lidar/points
+    - imu_topic: /sensors/lidar/imu
+
+  instance_data:
+    launch_argument: device_config
+    expected: absolute path to a verified livox_ros_driver2 MID360S JSON
+    committed: false
+
+  assumptions:
+    - PointCloud2 field layout is LivoxPointXyzitl (x, y, z, intensity, tag,
+      line) plus an extra `timestamp` field, matching FAST-LIO2 lidar_type 4.
+    - IMU axes are the MID360S factory definition; no axis transform applied.
+    - Both outputs carry the device timebase, not host receive time.
+    - multi_topic is 0; with 1 the driver appends _<ip> to both topic names
+      and downstream consumers of the stable topics would lose data.
+
+  limitations:
+    - The IMU frame comes from `imu_frame_id`, which only exists after
+      patches/livox_ros_driver2/0001-parameterize-outputs.patch is applied by
+      tools/import_dependencies.sh. Without the patch the driver publishes IMU
+      in `livox_frame` and `frame_id` only affects the point cloud.
+    - xfer_format 1 (CustomMsg) breaks the stable contract. If the driver must
+      run in that mode, add a converter inside this package that writes
+      offset_time into the timestamp field before publishing the stable topic.
+    - Device timebase sync with the host and IMU axis order are not yet
+      verified on hardware.
+
+# Values that must be measured on the device before this adapter is trusted.
+verification_required:
+  - serial_number
+  - firmware_version
+  - lidar_and_host_ipv4
+  - udp_ports
+  - pointcloud_rate_and_qos
+  - imu_rate_units_axes_and_qos
+  - hardware_timestamp_semantics
+  - lidar_to_internal_imu_transform

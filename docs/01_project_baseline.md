@@ -159,8 +159,7 @@ earth / UTM
 
 | 数据 | 建议 topic | 消息/要求 |
 |---|---|---|
-| Livox 原始点云 | `/sensors/lidar/livox` | `livox_ros_driver2/msg/CustomMsg`，保留每点时间 |
-| 通用点云 | `/sensors/lidar/points` | `sensor_msgs/PointCloud2`，供可视化/下游 |
+| 通用点云 | `/sensors/lidar/points` | `sensor_msgs/PointCloud2`，驱动直出，供 LIO/可视化/下游 |
 | LiDAR IMU | `/sensors/lidar/imu` | `sensor_msgs/Imu`，LIO 主 IMU |
 | 四路图像 | `/sensors/camera/camN/image_raw` | `sensor_msgs/Image`，源时间戳 |
 | 相机参数 | `/sensors/camera/camN/camera_info` | `sensor_msgs/CameraInfo` |
@@ -168,7 +167,7 @@ earth / UTM
 | GNSS | `/sensors/gnss/fix` | `sensor_msgs/NavSatFix`，真实协方差 |
 | GNSS 时间 | `/sensors/gnss/time_reference` | `sensor_msgs/TimeReference` 或自定义状态 |
 | RTK 状态 | `/sensors/gnss/rtk_status` | fixed/float/age/ratio/sats |
-| 同步状态 | `/system/sync/status` | 各时钟 offset、jitter、lock 状态 |
+| 同步状态 | `/system/time_sync/status` | 各时钟 offset、jitter、lock 状态 |
 | 设备状态 | `/diagnostics` | ROS diagnostics |
 | LIO 里程计 | `/localization/lio/odometry` | `nav_msgs/Odometry` |
 | 注册点云 | `/mapping/cloud_registered` | `sensor_msgs/PointCloud2` |

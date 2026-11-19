@@ -13,6 +13,7 @@ output_pcd="$(realpath -m "${output_pcd}")"
 
 "${workspace_dir}/tools/check_rosbag.py" "${bag_dir}"
 mkdir -p "$(dirname "${output_pcd}")" "${workspace_dir}/log/ros2"
+rm -f "${output_pcd}"
 
 export ROS_LOG_DIR="${workspace_dir}/log/ros2"
 export LD_LIBRARY_PATH="${workspace_dir}/.deps/install/livox-sdk2/lib:${LD_LIBRARY_PATH:-}"
@@ -35,7 +36,12 @@ trap stop_mapping EXIT INT TERM
 sleep 2
 ros2 bag play "${bag_dir}" --clock 100
 sleep 2
-ros2 service call /mapping/save std_srvs/srv/Trigger '{}'
+save_output="$(ros2 service call /mapping/save std_srvs/srv/Trigger '{}')"
+echo "${save_output}"
+if ! grep -q "success=True" <<<"${save_output}"; then
+  echo "Map save service reported failure; check pcd_save_en in the profile." >&2
+  exit 1
+fi
 sleep 2
 
 stop_mapping

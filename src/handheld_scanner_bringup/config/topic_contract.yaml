@@ -1,10 +1,15 @@
 schema_version: 1
 
-# Vendor topics end at their integration packages. New application code should
-# consume the stable topics below once the corresponding adapters are enabled.
+# Vendor defaults that the adapters override through driver parameters. Once
+# the lidar or camera adapter is running these names are not published;
+# application code must use stable_topics. data_cap still creates six
+# publishers; /cam4 and /cam5 stay silent on the four-camera MF287.
 vendor_inputs:
   mid360s_points: /livox/lidar
   mid360s_imu: /livox/imu
+  mf287_images: "/cam{index}/image_raw"        # index 0..5
+  mf287_temperatures: "/cam{index}/temperature"
+  mf287_imu: /imu0
 
 stable_topics:
   lidar_points: /sensors/lidar/points
@@ -14,9 +19,23 @@ stable_topics:
     - /sensors/camera/cam1/image_raw
     - /sensors/camera/cam2/image_raw
     - /sensors/camera/cam3/image_raw
+  # Six-image firmware also fills /sensors/camera/cam4,cam5/*; those are
+  # published by the adapter but not part of this frozen four-camera contract.
+  # No producer yet: CameraInfo requires calibrated intrinsics/extrinsics.
+  camera_info:
+    - /sensors/camera/cam0/camera_info
+    - /sensors/camera/cam1/camera_info
+    - /sensors/camera/cam2/camera_info
+    - /sensors/camera/cam3/camera_info
+  camera_temperatures:
+    - /sensors/camera/cam0/temperature
+    - /sensors/camera/cam1/temperature
+    - /sensors/camera/cam2/temperature
+    - /sensors/camera/cam3/temperature
   camera_imu: /sensors/camera/imu
-  gnss_fix: /sensors/gnss/fix
   time_sync_status: /system/time_sync/status
+  # Planned, no producer yet:
+  gnss_fix: /sensors/gnss/fix
   power_status: /system/power/status
   battery_status: /battery/status
   diagnostics: /diagnostics

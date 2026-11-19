@@ -1,0 +1,138 @@
+diff --git a/ros2/src/data_cap/src/capture_image_imu.cpp b/ros2/src/data_cap/src/capture_image_imu.cpp
+index 3e6bd3e..1f6dc68 100755
+--- a/ros2/src/data_cap/src/capture_image_imu.cpp
++++ b/ros2/src/data_cap/src/capture_image_imu.cpp
+@@ -43,6 +43,27 @@ private:
+ 
+     std::thread worker_thread_;
+     std::atomic<bool> is_running_;
++    std::string image_frame_template_;
++    std::string imu_frame_id_;
++    std::string image_topic_template_;
++    std::string temperature_topic_template_;
++    std::string imu_topic_;
++    int publisher_count_ = 6;
++
++    // Project patch: replace {index} in frame ids and topic names so outputs
++    // can be named independently of the vendor defaults "camN" / "/camN/...".
++    std::string FormatIndexedName(const std::string &tmpl, int index) const
++    {
++        std::string out = tmpl;
++        const std::string token = "{index}";
++        const std::string value = std::to_string(index);
++        std::string::size_type pos = 0;
++        while ((pos = out.find(token, pos)) != std::string::npos) {
++            out.replace(pos, token.size(), value);
++            pos += value.size();
++        }
++        return out;
++    }
+ 
+ public:
+     CameraImuPublisher() : Node("data_publisher")
+@@ -50,13 +71,64 @@ public:
+         // The SDK parallelises the four cameras with persistent workers.
+         // Disable nested OpenCV worker pools to avoid CPU oversubscription.
+         cv::setNumThreads(1);
+-        for (int i = 0; i < 6; ++i)
++        this->declare_parameter<std::string>("image_frame_template", "cam{index}");
++        this->declare_parameter<std::string>("imu_frame_id", "imu0");
++        this->declare_parameter<std::string>("image_topic_template",
++            "/cam{index}/image_raw");
++        this->declare_parameter<std::string>("temperature_topic_template",
++            "/cam{index}/temperature");
++        this->declare_parameter<std::string>("imu_topic", "/imu0");
++        this->declare_parameter<int>("publisher_count", 6);
++        this->get_parameter("image_frame_template", image_frame_template_);
++        this->get_parameter("imu_frame_id", imu_frame_id_);
++        this->get_parameter("image_topic_template", image_topic_template_);
++        this->get_parameter("temperature_topic_template", temperature_topic_template_);
++        this->get_parameter("imu_topic", imu_topic_);
++        this->get_parameter("publisher_count", publisher_count_);
++        if (publisher_count_ < 1) {
++            RCLCPP_WARN(this->get_logger(),
++                "publisher_count %d is invalid, using 1", publisher_count_);
++            publisher_count_ = 1;
++        }
++        if (publisher_count_ > 6) {
++            RCLCPP_WARN(this->get_logger(),
++                "publisher_count %d exceeds 6, using 6", publisher_count_);
++            publisher_count_ = 6;
++        }
++        if (image_topic_template_.empty()) {
++            image_topic_template_ = "/cam{index}/image_raw";
++        }
++        if (temperature_topic_template_.empty()) {
++            temperature_topic_template_ = "/cam{index}/temperature";
++        }
++        if (image_frame_template_.empty()) {
++            image_frame_template_ = "cam{index}";
++        }
++        if (imu_topic_.empty()) {
++            imu_topic_ = "/imu0";
++        }
++        if (imu_frame_id_.empty()) {
++            imu_frame_id_ = "imu0";
++        }
++        const std::string index_token = "{index}";
++        if (publisher_count_ > 1 &&
++            (image_topic_template_.find(index_token) == std::string::npos ||
++             temperature_topic_template_.find(index_token) == std::string::npos ||
++             image_frame_template_.find(index_token) == std::string::npos)) {
++            RCLCPP_WARN(this->get_logger(),
++                "topic/frame templates must contain {index} when publisher_count > 1; "
++                "using vendor defaults");
++            image_topic_template_ = "/cam{index}/image_raw";
++            temperature_topic_template_ = "/cam{index}/temperature";
++            image_frame_template_ = "cam{index}";
++        }
++        for (int i = 0; i < publisher_count_; ++i)
+             cam_image_pub[i] = this->create_publisher<sensor_msgs::msg::Image>(
+-                "/cam" + std::to_string(i) + "/image_raw", 10);
+-        imu_pub = this->create_publisher<sensor_msgs::msg::Imu>("/imu0", 1000);
+-        for (int i = 0; i < 6; ++i)
++                FormatIndexedName(image_topic_template_, i), 10);
++        imu_pub = this->create_publisher<sensor_msgs::msg::Imu>(imu_topic_, 1000);
++        for (int i = 0; i < publisher_count_; ++i)
+             temperature_pub[i] = this->create_publisher<sensor_msgs::msg::Temperature>(
+-                "/cam" + std::to_string(i) + "/temperature", 10);
++                FormatIndexedName(temperature_topic_template_, i), 10);
+         is_running_ = true;
+         worker_thread_ = std::thread(&CameraImuPublisher::publish_data, this);
+ 
+@@ -264,9 +336,16 @@ public:
+                 msg[1].image = right_image;
+             }
+ 
++            if (output_cameras > publisher_count_) {
++                RCLCPP_WARN_THROTTLE(this->get_logger(), *this->get_clock(), 5000,
++                    "device reports %d cameras, publisher_count is %d; extra outputs dropped",
++                    output_cameras, publisher_count_);
++                output_cameras = publisher_count_;
++            }
++
+             for (int i = 0; i < output_cameras; ++i) {
+                 msg[i].header.stamp = custom_time;
+-                msg[i].header.frame_id = "cam" + std::to_string(i);
++                msg[i].header.frame_id = FormatIndexedName(image_frame_template_, i);
+             }
+ 
+             RCLCPP_DEBUG(this->get_logger(), "image_timestamp %.6f", image_timestamp);
+@@ -286,7 +365,7 @@ public:
+ 
+                 sensor_msgs::msg::Imu imu_msg;
+                 imu_msg.header.stamp = rclcpp::Time(imu_timestamp*1e9);
+-                imu_msg.header.frame_id = "imu0";
++                imu_msg.header.frame_id = imu_frame_id_;
+ 
+                 // acc
+                 imu_msg.linear_acceleration.x = acc_x;
+@@ -310,7 +389,7 @@ public:
+                 if (!valid) continue;
+                 sensor_msgs::msg::Temperature temperature;
+                 temperature.header.stamp = custom_time;
+-                temperature.header.frame_id = "cam" + std::to_string(i);
++                temperature.header.frame_id = FormatIndexedName(image_frame_template_, i);
+                 temperature.temperature = i < 4 ? sensors.temperature[sensor_index]
+                                                 : c56_temperature[i - 4];
+                 temperature.variance = 0.0;

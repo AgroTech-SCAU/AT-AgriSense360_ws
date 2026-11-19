@@ -1,0 +1,113 @@
+schema_version: 1
+device: camera
+
+# ── 1. Upstream requirements ────────────────────────────────────────────────
+# Frozen. Consumers must see these topics and message types regardless of the
+# camera module in use. Only the adapter section below is model-specific.
+# Frame ids below are supplied to the driver as launch parameters
+# (see adapter.image_frame_param / imu_frame_param).
+required_output:
+  - name: images
+    topic_template: /sensors/camera/cam{index}/image_raw
+    count: 4
+    type: sensor_msgs/msg/Image
+    frame_id_template: camera_{index}_link
+    encoding: bgr8          # SC136HGS Bayer path; mono8 on the MT9V034 variant
+    time:
+      header: device             # camera/FPGA timebase
+      host_sync: unverified
+    qos: reliable
+  - name: camera_info
+    topic_template: /sensors/camera/cam{index}/camera_info
+    count: 4
+    type: sensor_msgs/msg/CameraInfo
+    frame_id_template: camera_{index}_link
+    status: REQUIRED_AFTER_CALIBRATION
+  - name: temperatures
+    topic_template: /sensors/camera/cam{index}/temperature
+    count: 4
+    type: sensor_msgs/msg/Temperature
+    frame_id_template: camera_{index}_link
+    status: DIAGNOSTIC
+    qos: reliable
+  - name: imu
+    topic: /sensors/camera/imu
+    type: sensor_msgs/msg/Imu
+    frame_id: camera_imu_link
+    axes: UNCONFIRMED
+    units: UNCONFIRMED
+    time:
+      header: device             # camera device timebase
+      host_sync: unverified
+    qos: reliable
+
+# ── 2. Adapter for the current model ────────────────────────────────────────
+# Rewrite this section when the camera changes. Keep `required_output` intact.
+adapter:
+  model: CyperStereo MF287
+  status: INTERFACE_CONFIRMED_DRIVER_PENDING
+  driver:
+    package: data_cap
+    vendor: CyperstereoSDK
+    commit: 30e1a7899f419af08f59cb476ddb87c5514de189
+    executable: capture_image_imu
+    node_name: data_publisher
+  model_record: mf287.yaml         # documentation only; driver reads no file
+  # Added by patches/CyperstereoSDK/0001-parameterize-outputs.patch.
+  image_frame_param: image_frame_template
+  imu_frame_param: imu_frame_id
+  topic_params:
+    images: image_topic_template
+    temperatures: temperature_topic_template
+    imu: imu_topic
+    publisher_count: publisher_count
+  # Vendor defaults, kept for reference.
+  vendor_topics:
+    images: /cam{index}/image_raw
+    temperatures: /cam{index}/temperature
+    imu: /imu0
+  strategy: driver_native_messages
+
+  steps:
+    - start data_cap capture_image_imu
+    - driver publishes the stable topics directly (no remap)
+
+  instance_data:
+    status: NOT_WIRED
+    expected: camera calibration directory, passed to a future driver
+    committed: false
+
+  assumptions:
+    - data_cap already publishes sensor_msgs/Image and sensor_msgs/Imu; no
+      message conversion is performed.
+    - The adapter passes publisher_count taken from required_output.images.count,
+      so a two-camera module only needs a contract count change.
+    - Six-image firmware changes the layout, not just the count; cam2..cam5
+      become half-width/half-height (640x512) images. That mode needs a
+      separate profile with count 6 and extended frame/topic contracts.
+    - Apart from the six parameters added by the patch (two frame ids, three
+      topic templates and publisher_count), data_cap declares no ROS
+      parameters, so mf287.yaml is a record rather than driver input.
+
+  limitations:
+    - Header frames come from `image_frame_template` / `imu_frame_id`, which
+      only exist after
+      patches/CyperstereoSDK/0001-parameterize-outputs.patch is applied
+      by tools/import_dependencies.sh. Without the patch the driver hardcodes
+      `camN` / `imu0`, which do not match frame_contract.yaml.
+
+    - No CameraInfo is published. required_output for camera_info stays unmet
+      until calibration exists and a publisher is added.
+    - Header stamps come from the camera device timebase
+      (image_timestamp / imu_timestamp), not the scanner mainboard. Host sync
+      and mainboard triggering are not verified.
+    - The package exposes `enabled` and `use_sim_time`; frames, topics and
+      publisher_count are filled from this contract, not from the CLI.
+
+verification_required:
+  - camera_count_and_trigger_wiring
+  - image_resolution_encoding_and_rate
+  - per_camera_hardware_timestamps
+  - imu_rate_units_axes_and_qos
+  - camera_imu_time_mapping
+  - calibration_outputs_for_CameraInfo

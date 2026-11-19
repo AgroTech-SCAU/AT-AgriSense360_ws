@@ -2,14 +2,16 @@
 <package format="3">
   <name>handheld_scanner_lidar</name>
   <version>0.2.0</version>
-  <description>MID360S driver boundary and launch adapter for Handheld-scanner.</description>
+  <description>Model-independent LiDAR adapter for Handheld-scanner (current model: Livox MID360S).</description>
   <maintainer email="3186295108@qq.com">LaNHuii</maintainer>
   <license>Apache-2.0</license>
 
   <buildtool_depend>ament_cmake</buildtool_depend>
+  <exec_depend>ament_index_python</exec_depend>
   <exec_depend>launch</exec_depend>
   <exec_depend>launch_ros</exec_depend>
   <exec_depend>livox_ros_driver2</exec_depend>
+  <exec_depend>python3-yaml</exec_depend>
 
   <export>
     <build_type>ament_cmake</build_type>

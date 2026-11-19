@@ -9,9 +9,9 @@ candidate:
 # The upstream HKU-MARS FAST_LIO repository is ROS 1 oriented. A ROS 2 port
 # must pass source, license, message, maintenance and replay review before pinning.
 required_inputs:
-  pointcloud_topic: /livox/lidar
-  pointcloud_type: livox_ros_driver2/msg/CustomMsg
-  imu_topic: /livox/imu
+  pointcloud_topic: /sensors/lidar/points
+  pointcloud_type: sensor_msgs/msg/PointCloud2
+  imu_topic: /sensors/lidar/imu
   imu_type: sensor_msgs/msg/Imu
 
 required_outputs:
@@ -19,8 +19,22 @@ required_outputs:
   path_topic: /localization/lio/path
   registered_cloud_topic: /mapping/cloud_registered
   map_frame: map
-  odometry_frame: odom
+  odometry_frame: odom          # target; see implementation_notes
   body_frame: lidar_imu_link
+
+implementation_notes:
+  - FAST-LIO2 currently stamps /localization/lio/odometry with the map frame
+    and publishes map -> lidar_imu_link. map -> odom -> base_link is reserved
+    for the loop-closure/GNSS stage; no such transform is published yet.
+  - Odometry and TF stamps use the device timebase supplied by the driver.
+    Host sync (PTP/PPS) is not verified, so they may differ from camera and
+    timesync stamps until synchronization is validated.
+  - The offline replay profile reads /livox/points from the public bag and
+    bypasses the LiDAR adapter on purpose; it is an algorithm check, not the
+    integrated interface.
+  - The live profile uses the upstream MID360 evaluation seed for the
+    LiDAR-to-IMU extrinsics until calibration exists. Acceptance still
+    requires measured values.
 
 acceptance:
   bag_replay_reproducible: true

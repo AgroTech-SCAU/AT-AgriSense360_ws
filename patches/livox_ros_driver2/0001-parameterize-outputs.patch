@@ -1,0 +1,144 @@
+diff --git a/src/lddc.cpp b/src/lddc.cpp
+index 06195df..f5c30af 100644
+--- a/src/lddc.cpp
++++ b/src/lddc.cpp
+@@ -478,7 +478,7 @@ void Lddc::PublishPclData(const uint8_t index, const uint64_t timestamp, const P
+ }
+ 
+ void Lddc::InitImuMsg(const ImuData& imu_data, ImuMsg& imu_msg, uint64_t& timestamp) {
+-  imu_msg.header.frame_id = "livox_frame";
++  imu_msg.header.frame_id = imu_frame_id_;
+ 
+   timestamp = imu_data.time_stamp;
+ #ifdef BUILDING_ROS1
+@@ -643,20 +643,16 @@ std::shared_ptr<rclcpp::PublisherBase> Lddc::GetCurrentPublisher(uint8_t handle)
+   uint32_t queue_size = kMinEthPacketQueueSize;
+   if (use_multi_topic_) {
+     if (!private_pub_[handle]) {
+-      char name_str[48];
+-      memset(name_str, 0, sizeof(name_str));
+-
+       std::string ip_string = IpNumToString(lds_->lidars_[handle].handle);
+-      snprintf(name_str, sizeof(name_str), "livox/lidar_%s",
+-          ReplacePeriodByUnderline(ip_string).c_str());
+-      std::string topic_name(name_str);
++      std::string topic_name =
++          pointcloud_topic_ + "_" + ReplacePeriodByUnderline(ip_string);
+       queue_size = queue_size * 2; // queue size is 64 for only one lidar
+       private_pub_[handle] = CreatePublisher(transfer_format_, topic_name, queue_size);
+     }
+     return private_pub_[handle];
+   } else {
+     if (!global_pub_) {
+-      std::string topic_name("livox/lidar");
++      std::string topic_name(pointcloud_topic_);
+       queue_size = queue_size * 8; // shared queue size is 256, for all lidars
+       global_pub_ = CreatePublisher(transfer_format_, topic_name, queue_size);
+     }
+@@ -668,12 +664,8 @@ std::shared_ptr<rclcpp::PublisherBase> Lddc::GetCurrentImuPublisher(uint8_t hand
+   uint32_t queue_size = kMinEthPacketQueueSize;
+   if (use_multi_topic_) {
+     if (!private_imu_pub_[handle]) {
+-      char name_str[48];
+-      memset(name_str, 0, sizeof(name_str));
+       std::string ip_string = IpNumToString(lds_->lidars_[handle].handle);
+-      snprintf(name_str, sizeof(name_str), "livox/imu_%s",
+-          ReplacePeriodByUnderline(ip_string).c_str());
+-      std::string topic_name(name_str);
++      std::string topic_name = imu_topic_ + "_" + ReplacePeriodByUnderline(ip_string);
+       queue_size = queue_size * 2; // queue size is 64 for only one lidar
+       private_imu_pub_[handle] = CreatePublisher(kLivoxImuMsg, topic_name,
+           queue_size);
+@@ -681,7 +673,7 @@ std::shared_ptr<rclcpp::PublisherBase> Lddc::GetCurrentImuPublisher(uint8_t hand
+     return private_imu_pub_[handle];
+   } else {
+     if (!global_imu_pub_) {
+-      std::string topic_name("livox/imu");
++      std::string topic_name(imu_topic_);
+       queue_size = queue_size * 8; // shared queue size is 256, for all lidars
+       global_imu_pub_ = CreatePublisher(kLivoxImuMsg, topic_name, queue_size);
+     }
+diff --git a/src/lddc.h b/src/lddc.h
+index 6d146d1..2503ccf 100644
+--- a/src/lddc.h
++++ b/src/lddc.h
+@@ -89,6 +89,12 @@ class Lddc final {
+   uint8_t GetTransferFormat(void) { return transfer_format_; }
+   uint8_t IsMultiTopic(void) { return use_multi_topic_; }
+   void SetRosNode(livox_ros::DriverNode *node) { cur_node_ = node; }
++  // Project patch: IMU frame and output topic names are configurable.
++  void SetImuFrameId(const std::string &imu_frame_id) { imu_frame_id_ = imu_frame_id; }
++  void SetTopicNames(const std::string &pointcloud_topic, const std::string &imu_topic) {
++    pointcloud_topic_ = pointcloud_topic;
++    imu_topic_ = imu_topic;
++  }
+ 
+   // void SetRosPub(ros::Publisher *pub) { global_pub_ = pub; };  // NOT USED
+   void SetPublishFrq(uint32_t frq) { publish_frq_ = frq; }
+@@ -139,6 +145,9 @@ class Lddc final {
+   double publish_frq_;
+   uint32_t publish_period_ns_;
+   std::string frame_id_;
++  std::string imu_frame_id_ = "livox_frame";
++  std::string pointcloud_topic_ = "livox/lidar";
++  std::string imu_topic_ = "livox/imu";
+ 
+ #ifdef BUILDING_ROS1
+   bool enable_lidar_bag_;
+diff --git a/src/livox_ros_driver2.cpp b/src/livox_ros_driver2.cpp
+index 6dda05f..628e4c2 100644
+--- a/src/livox_ros_driver2.cpp
++++ b/src/livox_ros_driver2.cpp
+@@ -26,6 +26,7 @@
+ #include <chrono>
+ #include <vector>
+ #include <csignal>
++#include <stdexcept>
+ #include <thread>
+ 
+ #include "include/livox_ros_driver2.h"
+@@ -127,6 +128,9 @@ DriverNode::DriverNode(const rclcpp::NodeOptions & node_options)
+   double publish_freq = 10.0; /* Hz */
+   int output_type = kOutputToRos;
+   std::string frame_id;
++  std::string imu_frame_id;
++  std::string pointcloud_topic;
++  std::string imu_topic;
+ 
+   this->declare_parameter("xfer_format", xfer_format);
+   this->declare_parameter("multi_topic", 0);
+@@ -134,6 +138,9 @@ DriverNode::DriverNode(const rclcpp::NodeOptions & node_options)
+   this->declare_parameter("publish_freq", 10.0);
+   this->declare_parameter("output_data_type", output_type);
+   this->declare_parameter("frame_id", "frame_default");
++  this->declare_parameter("imu_frame_id", "livox_frame");
++  this->declare_parameter("pointcloud_topic", "livox/lidar");
++  this->declare_parameter("imu_topic", "livox/imu");
+   this->declare_parameter("user_config_path", "path_default");
+   this->declare_parameter("cmdline_input_bd_code", "000000000000001");
+   this->declare_parameter("lvx_file_path", "/home/livox/livox_test.lvx");
+@@ -144,6 +151,15 @@ DriverNode::DriverNode(const rclcpp::NodeOptions & node_options)
+   this->get_parameter("publish_freq", publish_freq);
+   this->get_parameter("output_data_type", output_type);
+   this->get_parameter("frame_id", frame_id);
++  this->get_parameter("imu_frame_id", imu_frame_id);
++  this->get_parameter("pointcloud_topic", pointcloud_topic);
++  this->get_parameter("imu_topic", imu_topic);
++
++  if (pointcloud_topic.empty() || imu_topic.empty()) {
++    RCLCPP_FATAL(this->get_logger(),
++        "pointcloud_topic and imu_topic must not be empty");
++    throw std::runtime_error("empty topic name");
++  }
+ 
+   if (publish_freq > 100.0) {
+     publish_freq = 100.0;
+@@ -158,6 +174,8 @@ DriverNode::DriverNode(const rclcpp::NodeOptions & node_options)
+   /** Lidar data distribute control and lidar data source set */
+   lddc_ptr_ = std::make_unique<Lddc>(xfer_format, multi_topic, data_src, output_type, publish_freq, frame_id);
+   lddc_ptr_->SetRosNode(this);
++  lddc_ptr_->SetImuFrameId(imu_frame_id);
++  lddc_ptr_->SetTopicNames(pointcloud_topic, imu_topic);
+ 
+   if (data_src == kSourceRawLidar) {
+     DRIVER_INFO(*this, "Data Source is raw lidar.");
