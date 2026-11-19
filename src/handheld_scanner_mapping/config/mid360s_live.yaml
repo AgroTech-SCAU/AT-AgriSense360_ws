@@ -16,10 +16,13 @@
       lidar_type: 4
       scan_line: 4
       blind: 0.5
+      # MID360 handler derives offsets from yaw/scan_rate; it does not read the
+      # per-point timestamp field, so timestamp_unit has no effect here.
       timestamp_unit: 3
       scan_rate: 10
 
     feature_extract_enable: false
+    # Not read by the MID360 handler; kept for parity with the upstream profile.
     point_filter_num: 3
     max_iteration: 3
     filter_size_surf: 0.5
@@ -51,5 +54,6 @@
       scan_bodyframe_pub_en: true
 
     pcd_save:
-      pcd_save_en: false
+      # Required by the /mapping/save service.
+      pcd_save_en: true
       interval: -1

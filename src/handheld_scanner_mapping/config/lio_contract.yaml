@@ -26,6 +26,12 @@ implementation_notes:
   - FAST-LIO2 currently stamps /localization/lio/odometry with the map frame
     and publishes map -> lidar_imu_link. map -> odom -> base_link is reserved
     for the loop-closure/GNSS stage; no such transform is published yet.
+  - Odometry and TF stamps use the device timebase supplied by the driver.
+    Host sync (PTP/PPS) is not verified, so they may differ from camera and
+    timesync stamps until synchronization is validated.
+  - The offline replay profile reads /livox/points from the public bag and
+    bypasses the LiDAR adapter on purpose; it is an algorithm check, not the
+    integrated interface.
   - The live profile uses the upstream MID360 evaluation seed for the
     LiDAR-to-IMU extrinsics until calibration exists. Acceptance still
     requires measured values.

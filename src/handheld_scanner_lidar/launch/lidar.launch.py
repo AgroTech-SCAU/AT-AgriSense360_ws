@@ -10,10 +10,23 @@ from pathlib import Path
 import yaml
 from ament_index_python.packages import get_package_share_directory
 from launch import LaunchDescription
-from launch.actions import DeclareLaunchArgument
+from launch.actions import DeclareLaunchArgument, OpaqueFunction
 from launch.conditions import IfCondition
 from launch.substitutions import LaunchConfiguration
 from launch_ros.actions import Node
+
+
+def _validate_device_config(context):
+    """Refuse to start a driver that would spin without a device JSON."""
+    if LaunchConfiguration("enabled").perform(context).lower() not in ("true", "1"):
+        return []
+    path = Path(LaunchConfiguration("device_config").perform(context))
+    if not path.is_file():
+        raise RuntimeError(
+            "device_config must point to an existing verified device JSON "
+            "when enabled:=true"
+        )
+    return []
 
 
 def generate_launch_description():
@@ -82,6 +95,7 @@ def generate_launch_description():
             default_value="false",
             description="True when replaying a bag with --clock.",
         ),
+        OpaqueFunction(function=_validate_device_config),
         Node(
             condition=IfCondition(enabled),
             package=driver["package"],

@@ -38,6 +38,8 @@ check_vendor_patch "src/vendor/livox_ros_driver2" \
   "patches/livox_ros_driver2/0001-parameterize-outputs.patch"
 check_vendor_patch "src/vendor/CyperstereoSDK" \
   "patches/CyperstereoSDK/0001-parameterize-outputs.patch"
+check_vendor_patch "src/vendor/FAST_LIO_ROS2" \
+  "patches/fast_lio_ros2/0001-parameterize-output-frames.patch"
 
 # Build only src/.  third_party/ is deliberately outside this colcon
 # invocation: Livox-SDK2 is installed into .deps by build_livox_sdk2.sh, and
@@ -69,3 +71,5 @@ colcon build \
     -DDISTRO_ROS=humble \
     -DPYTHON_EXECUTABLE=/usr/bin/python3 \
     -DPython3_EXECUTABLE=/usr/bin/python3
+
+"${workspace_dir}/tools/check_adapters.sh"

@@ -55,6 +55,16 @@ ros2 topic hz /sensors/camera/cam0/image_raw
 ros2 topic echo --once /sensors/camera/imu
 ```
 
+The adapter advertises six image and six temperature topics plus one IMU
+topic. On four-camera hardware cam4/cam5 are advertised but silent, so nine
+streams carry data: cam0..3 image, cam0..3 temperature and the IMU. The
+publishers are created before any frame arrives, so `ros2 topic list` shows
+them even without streaming.
+
+Run `./tools/check_adapters.sh` after building: it fails if the installed
+`data_cap` predates the output patch. Make sure the driver is not already
+running elsewhere — the USB device is exclusive.
+
 ## Replacing the camera
 
 1. **Driver** — add the new driver to `dependencies.repos` at an immutable

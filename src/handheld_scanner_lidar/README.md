@@ -54,6 +54,14 @@ ros2 topic hz /sensors/lidar/points
 ros2 topic echo --once /sensors/lidar/imu
 ```
 
+The vendor driver creates publishers lazily on the first data packet, so
+`ros2 topic info` reports "Unknown topic" until the LiDAR is streaming.
+
+Run `./tools/check_adapters.sh` after building: it fails if the installed
+driver predates the output patch. Keep the workspace in place — the Livox
+library records absolute RUNPATHs to `.deps/`, so a copied `install/` will
+not load.
+
 ## Replacing the LiDAR
 
 1. **Driver** — add the new driver to `dependencies.repos` at an immutable

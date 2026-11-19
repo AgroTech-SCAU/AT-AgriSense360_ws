@@ -50,5 +50,6 @@
       scan_bodyframe_pub_en: true
 
     pcd_save:
-      pcd_save_en: false
+      # Required by /mapping/save; the offline acceptance script asserts a PCD.
+      pcd_save_en: true
       interval: -1
